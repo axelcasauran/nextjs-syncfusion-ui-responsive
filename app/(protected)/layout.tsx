@@ -1,0 +1,34 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { ScreenLoader } from '@/app/components/common/screen-loader';
+import { DefaultLayout } from '../components/layouts/default';
+
+import { initializeSyncfusion } from '@/utils/syncfusion-license';
+if (typeof window !== 'undefined') {
+  console.log('Syncfusion license key:', process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE_KEY);
+  initializeSyncfusion();
+}
+
+export default function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/signin');
+    }
+  }, [status, router]);
+
+  if (status === 'loading') {
+    return <ScreenLoader />;
+  }
+
+  return session ? <DefaultLayout>{children}</DefaultLayout> : null;
+}

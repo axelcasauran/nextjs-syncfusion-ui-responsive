@@ -1,0 +1,18 @@
+import { z } from 'zod';
+
+export const UserProfileSchema = z.object({
+  firstName: z.string().nonempty({
+    message: 'First Name is required.',
+  }),
+  lastName: z.string().nonempty({
+    message: 'Last Name is required.',
+  }),
+  roleId: z.string().nonempty({
+    message: 'Role ID is required.',
+  }),
+  status: z.string().nonempty({
+    message: 'Status is required.',
+  }),
+});
+
+export type UserProfileSchemaType = z.infer<typeof UserProfileSchema>;

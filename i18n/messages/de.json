@@ -1,0 +1,146 @@
+{
+  "common": {
+    "enums": {
+      "category_status": {
+        "active": "Aktiv",
+        "inactive": "Inaktiv"
+      }
+    },
+    "messages": {
+      "unauthorized": "Unbefugter Zugriff.",
+      "system_error": "Hoppla! Etwas ist nicht wie geplant gelaufen. Bitte versuchen Sie es in einem Moment erneut.",
+      "invalid_input": "Ungültige Eingabe. Bitte überprüfen Sie Ihre Daten und versuchen Sie es erneut.",
+      "data_not_found": "Angeforderte Daten nicht gefunden.",
+      "delete_restricted_error": "Dieser Datensatz kann nicht gelöscht werden, da er mit anderen Datensätzen verknüpft ist."
+    },
+    "confirm-dimiss-dialog": {
+      "title": "Änderungen verwerfen?",
+      "description": "Sie haben ungespeicherte Änderungen. Möchten Sie diesen Dialog wirklich schließen?",
+      "cancel": "Abbrechen",
+      "confirm": "Änderungen verwerfen"
+    }
+  },
+  "components": {
+    "data-grid": {
+      "empty": {
+        "title": "Keine Daten",
+        "description": "Keine anzuzeigenden Daten verfügbar."
+      }
+    }
+  },
+  "modules": {
+    "categories": {
+      "meta": {
+        "title": "Kategorien"
+      },
+      "list": {
+        "columns": {
+          "name": "Name",
+          "slug": "Slug",
+          "status": "Status",
+          "product_count": "Produkte",
+          "created_by": "Erstellt von",
+          "created_at": "Erstellt am",
+          "actions": "Aktionen",
+          "stock": "Lager",
+          "no_stock": "Nicht auf Lager"
+        },
+        "filter": {
+          "search": {
+            "placeholder": "Kategorien suchen"
+          },
+          "status": {
+            "label": "Alle Status",
+            "placeholder": "Nach Status filtern"
+          }
+        },
+        "actions": {
+          "add": "Kategorie hinzufügen",
+          "delete": "Lösche {{count}} Kategorien"
+        },
+        "empty": {
+          "title": "Kategorien",
+          "description": "Noch keine Kategorie! Erstellen Sie Ihre erste Kategorie, um loszulegen.",
+          "button": "Kategorie hinzufügen"
+        },
+        "dropdown": {
+          "edit": "Bearbeiten",
+          "delete": "Löschen",
+          "copy_id": {
+            "label": "ID kopieren",
+            "success": "Kategorie-ID in die Zwischenablage kopiert."
+          },
+          "status": {
+            "label": "Status ändern",
+            "success": "Kategorie-Status erfolgreich aktualisiert."
+          }
+        }
+      },
+      "dialogs": {
+        "delete": {
+          "title": "Löschen bestätigen",
+          "description": "Sind Sie sicher, dass Sie die Kategorie löschen möchten?",
+          "success": "Kategorie erfolgreich gelöscht.",
+          "cancel": "Abbrechen",
+          "confirm": "Löschen"
+        },
+        "delete_group": {
+          "title": "Löschen bestätigen",
+          "description": "Sind Sie sicher, dass Sie die ausgewählte Kategorie löschen möchten?",
+          "success": "Kategorie erfolgreich gelöscht.",
+          "cancel": "Abbrechen",
+          "confirm": "Löschen"
+        },
+        "edit": {
+          "title": {
+            "add": "Kategorie hinzufügen",
+            "edit": "Kategorie bearbeiten"
+          },
+          "success": {
+            "add": "Kategorie erfolgreich hinzugefügt.",
+            "edit": "Kategorie erfolgreich aktualisiert."
+          },
+          "error": {
+            "duplicate": "Name und Slug müssen einzigartig sein.",
+            "edit": "Kategorie konnte nicht aktualisiert werden."
+          },
+          "form": {
+            "name": {
+              "label": "Name",
+              "placeholder": "Name eingeben",
+              "validation": {
+                "nonempty": "Name ist erforderlich.",
+                "min": "Name muss mindestens 2 Zeichen lang sein.",
+                "max": "Name darf maximal 30 Zeichen lang sein."
+              }
+            },
+            "slug": {
+              "label": "Slug",
+              "placeholder": "Z.B.: users:delete",
+              "description": "Ein eindeutiger Schlüssel für die Kategorie, der nach der Erstellung nicht mehr bearbeitet werden kann.",
+              "validation": {
+                "nonempty": "Slug ist erforderlich.",
+                "min": "Slug muss mindestens 2 Zeichen lang sein.",
+                "max": "Slug darf maximal 20 Zeichen lang sein."
+              }
+            },
+            "description": {
+              "label": "Beschreibung",
+              "placeholder": "Beschreibung eingeben",
+              "validation": {
+                "max": "Beschreibung darf maximal 500 Zeichen lang sein."
+              }
+            }
+          },
+          "actions": {
+            "cancel": "Abbrechen",
+            "submit": {
+              "add": "Kategorie hinzufügen",
+              "edit": "Kategorie aktualisieren"
+            }
+          }
+        }
+      }
+    }
+  }
+}

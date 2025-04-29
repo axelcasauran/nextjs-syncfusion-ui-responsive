@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Modoule
+enum UserStatus {
+  INACTIVE
+  ACTIVE
+  BLOCKED
+}
+
+model User {
+  id                 String               @id @default(uuid())
+  email              String               @unique
+  password           String?
+  country            String?
+  timezone           String?
+  firstName          String?
+  middleName         String?
+  lastName           String?
+  roleId             String
+  status             UserStatus           @default(INACTIVE) // Status of the invitation
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  lastSignInAt       DateTime?
+  emailVerifiedAt    DateTime?
+  isTrashed          Boolean              @default(false)
+  avatar             String?
+  invitedByUserId    String?
+  isProtected        Boolean              @default(false) // Prevents deletion/modification
+  mobilenumber       String?
+  gender             String?
+  qrCode             String?
+  journey            String?
+  tempId             String?
+  departmentId       String?
+  addresses          UserAddress[]
+  role               UserRole             @relation(fields: [roleId], references: [id])
+  department         Department?          @relation(fields: [departmentId], references: [id])
+  systemLog          SystemLog[]
+  accounts           Account[]
+  Session            Session[]
+  SystemNotification SystemNotification[]
+  Kid                Kid[]
+  ServiceDetail      ServiceDetail[]
+
+  // Indexes for efficient querying
+  @@index([invitedByUserId])
+  @@index([roleId])
+  @@index([departmentId])
+  @@index([status])
+}
+
+model UserRole {
+  id              String               @id @default(uuid())
+  slug            String               @unique
+  name            String               @unique
+  description     String?
+  isTrashed       Boolean              @default(false)
+  createdByUserId String?
+  createdAt       DateTime             @default(now())
+  isProtected     Boolean              @default(false)
+  isDefault       Boolean              @default(false)
+  users           User[]
+  permissions     UserRolePermission[]
+}
+
+model UserPermission {
+  id              String               @id @default(uuid())
+  slug            String               @unique
+  name            String
+  description     String?
+  createdByUserId String?
+  createdAt       DateTime             @default(now())
+  roles           UserRolePermission[]
+}
+
+model UserRolePermission {
+  id           String   @id @default(uuid())
+  roleId       String
+  permissionId String
+  assignedAt   DateTime @default(now())
+
+  role       UserRole       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission UserPermission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+}
+
+model UserAddress {
+  id           String  @id @default(uuid())
+  userId       String
+  addressLine  String
+  addressLine2 String
+  city         String
+  state        String
+  postalCode   String
+  country      String
+  isDefault    Boolean @default(false)
+  user         User    @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId], name: "provider_providerAccountId")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// System Module
+enum SystemNotificationType {
+  SYSTEM
+  ACTION
+  INFO
+}
+
+model SystemLog {
+  id          String   @id @default(uuid())
+  userId      String
+  createdAt   DateTime @default(now())
+  entityId    String?
+  entityType  String?
+  event       String?
+  description String?
+  ipAddress   String?
+  meta        String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model SystemSetting {
+  id             String  @id @default(uuid())
+  name           String  @default("Kids Church")
+  logo           String?
+  active         Boolean @default(true)
+  address        String?
+  websiteURL     String?
+  supportEmail   String?
+  supportPhone   String?
+  language       String  @default("en")
+  timezone       String  @default("UTC")
+  currency       String  @default("USD")
+  currencyFormat String  @default("$ {value}")
+
+  socialFacebook  String?
+  socialTwitter   String?
+  socialInstagram String?
+  socialLinkedIn  String?
+  socialPinterest String?
+  socialYoutube   String?
+
+  notifyStockEmail               Boolean  @default(true)
+  notifyStockWeb                 Boolean  @default(true)
+  notifyStockThreshold           Int      @default(10)
+  notifyStockRoleIds             String[]
+  notifyNewOrderEmail            Boolean  @default(true)
+  notifyNewOrderWeb              Boolean  @default(true)
+  notifyNewOrderRoleIds          String[]
+  notifyOrderStatusUpdateEmail   Boolean  @default(true)
+  notifyOrderStatusUpdateWeb     Boolean  @default(true)
+  notifyOrderStatusUpdateRoleIds String[]
+  notifyPaymentFailureEmail      Boolean  @default(true)
+  notifyPaymentFailureWeb        Boolean  @default(true)
+  notifyPaymentFailureRoleIds    String[]
+  notifySystemErrorFailureEmail  Boolean  @default(true)
+  notifySystemErrorWeb           Boolean  @default(true)
+  notifySystemErrorRoleIds       String[]
+}
+
+model SystemNotification {
+  id              String                 @id @default(uuid())
+  type            SystemNotificationType @default(SYSTEM)
+  subject         String
+  message         String
+  userId          String?
+  entityId        String?
+  entityType      String?
+  createdByUserId String?
+  createdAt       DateTime               @default(now())
+  user            User?                  @relation(fields: [userId], references: [id])
+
+  @@index([createdByUserId])
+}
+
+
+// Kids Module
+model Kid {
+  id              String                  @id @default(uuid())
+  firstName       String
+  middleName      String?
+  lastName        String
+  birthDate       String?
+  gender          String?
+  isActive        Boolean                 @default(true)  
+  fatherId        String?
+  motherId        String?
+  version         Int                     @default(1)
+  createdAt       DateTime                @default(now())
+  createdByUserId String?
+  createdByUser   User?                   @relation(fields: [createdByUserId], references: [id])
+
+  @@index([createdByUserId])
+}
+
+model Attendance {
+  id              String                  @id @default(uuid())
+  kidId           String
+  ageGroup        String
+  location        String
+  service         String
+  generatedQRCode String
+  checkIN         DateTime
+  checkOUT        DateTime
+  fullName        String
+  parentName      String
+  registeredBbyId String
+  createdAt       DateTime                @default(now())
+  createdByUserId String?
+
+  @@index([createdByUserId])
+}
+
+model Department {
+  id              String               @id @default(uuid())
+  slug            String               @unique
+  name            String               @unique
+  description     String?
+  isProtected     Boolean              @default(false)
+  isDefault       Boolean              @default(false)
+  users           User[]
+}
+
+model Service {
+  id              String               @id @default(uuid())
+  type            String               
+  name            String               
+  description     String?
+  location        String?  
+  startDate       DateTime?            @default(now())
+  endDate         DateTime?            @default(now())
+  isActive        Boolean              @default(true)
+  serviceDetail   ServiceDetail[]  
+}
+
+model ServiceDetail {
+  id              String               @id @default(uuid())
+  serviceId       String?
+  userId          String               
+  role            String               
+  description     String?
+  notes           String?
+  isAccepted      Boolean?             @default(false)
+  isRequired      Boolean              @default(false)
+  minutes         Int?                 @default(0)
+  startDate       DateTime?            @default(now())
+  service         Service?             @relation(fields: [serviceId], references: [id])
+  user            User?                @relation(fields: [userId], references: [id])
+}

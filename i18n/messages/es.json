@@ -1,0 +1,146 @@
+{
+  "common": {
+    "enums": {
+      "category_status": {
+        "active": "Activo",
+        "inactive": "Inactivo"
+      }
+    },
+    "messages": {
+      "unauthorized": "Acceso no autorizado.",
+      "system_error": "¡Vaya! Algo no salió según lo planeado. Por favor, inténtelo de nuevo en un momento.",
+      "invalid_input": "Entrada inválida. Por favor, verifique sus datos e inténtelo de nuevo.",
+      "data_not_found": "Datos solicitados no encontrados.",
+      "delete_restricted_error": "No se puede eliminar este registro porque está vinculado a otros registros."
+    },
+    "confirm-dimiss-dialog": {
+      "title": "¿Descartar cambios?",
+      "description": "Tiene cambios sin guardar. ¿Está seguro de que desea cerrar este diálogo?",
+      "cancel": "Cancelar",
+      "confirm": "Descartar cambios"
+    }
+  },
+  "components": {
+    "data-grid": {
+      "empty": {
+        "title": "Sin datos",
+        "description": "No hay datos disponibles para mostrar."
+      }
+    }
+  },
+  "modules": {
+    "categories": {
+      "meta": {
+        "title": "Categorías"
+      },
+      "list": {
+        "columns": {
+          "name": "Nombre",
+          "slug": "Slug",
+          "status": "Estado",
+          "product_count": "Productos",
+          "created_by": "Creado por",
+          "created_at": "Creado el",
+          "actions": "Acciones",
+          "stock": "En stock",
+          "no_stock": "Sin stock"
+        },
+        "filter": {
+          "search": {
+            "placeholder": "Buscar categorías"
+          },
+          "status": {
+            "label": "Todos los estados",
+            "placeholder": "Filtrar por estado"
+          }
+        },
+        "actions": {
+          "add": "Agregar categoría",
+          "delete": "Eliminar {{count}} categorías"
+        },
+        "empty": {
+          "title": "Categorías",
+          "description": "¡Aún no hay ninguna categoría! Cree su primera categoría para comenzar.",
+          "button": "Agregar categoría"
+        },
+        "dropdown": {
+          "edit": "Editar",
+          "delete": "Eliminar",
+          "copy_id": {
+            "label": "Copiar ID",
+            "success": "ID de categoría copiado al portapapeles."
+          },
+          "status": {
+            "label": "Cambiar estado",
+            "success": "Estado de la categoría actualizado con éxito."
+          }
+        }
+      },
+      "dialogs": {
+        "delete": {
+          "title": "Confirmar eliminación",
+          "description": "¿Está seguro de que desea eliminar la categoría?",
+          "success": "Categoría eliminada con éxito.",
+          "cancel": "Cancelar",
+          "confirm": "Eliminar"
+        },
+        "delete_group": {
+          "title": "Confirmar eliminación",
+          "description": "¿Está seguro de que desea eliminar la categoría seleccionada?",
+          "success": "Categoría eliminada con éxito.",
+          "cancel": "Cancelar",
+          "confirm": "Eliminar"
+        },
+        "edit": {
+          "title": {
+            "add": "Agregar categoría",
+            "edit": "Editar categoría"
+          },
+          "success": {
+            "add": "Categoría agregada con éxito.",
+            "edit": "Categoría actualizada con éxito."
+          },
+          "error": {
+            "duplicate": "El nombre y el slug deben ser únicos.",
+            "edit": "Error al actualizar la categoría."
+          },
+          "form": {
+            "name": {
+              "label": "Nombre",
+              "placeholder": "Ingrese el nombre",
+              "validation": {
+                "nonempty": "El nombre es obligatorio.",
+                "min": "El nombre debe tener al menos 2 caracteres.",
+                "max": "El nombre debe tener máximo 30 caracteres."
+              }
+            },
+            "slug": {
+              "label": "Slug",
+              "placeholder": "Ej.: users:delete",
+              "description": "Una clave única para la categoría, no se puede editar después de la creación.",
+              "validation": {
+                "nonempty": "El slug es obligatorio.",
+                "min": "El slug debe tener al menos 2 caracteres.",
+                "max": "El slug debe tener máximo 20 caracteres."
+              }
+            },
+            "description": {
+              "label": "Descripción",
+              "placeholder": "Ingrese la descripción",
+              "validation": {
+                "max": "La descripción debe tener máximo 500 caracteres."
+              }
+            }
+          },
+          "actions": {
+            "cancel": "Cancelar",
+            "submit": {
+              "add": "Agregar categoría",
+              "edit": "Actualizar categoría"
+            }
+          }
+        }
+      }
+    }
+  }
+}

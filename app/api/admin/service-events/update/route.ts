@@ -1,0 +1,34 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { NextRequest, NextResponse } from 'next/server';
+import { validateSession } from '@/app/framework/api/validateSession';
+import { getClientIP } from '@/lib/api';
+import { batchOperations } from '@/app/framework/api/batch-operations';
+
+const _entity = 'Service';
+const _model = 'service';
+
+export async function POST(request: NextRequest) {
+  try {
+    const { error, session } = await validateSession();
+    if (error) return error;  
+
+    const clientIp = getClientIP(request);
+    const body = await request.json();
+
+    const result = await batchOperations({
+      model: _model,
+      ...body,
+      userId: session.user.id,
+      clientIp,
+      entityType: _entity
+    });
+  
+    return NextResponse.json(result);
+
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || 'Something went wrong' },
+      { status: 500 }
+    );
+  }
+}

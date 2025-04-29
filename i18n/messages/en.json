@@ -1,0 +1,146 @@
+{
+  "common": {
+    "enums": {
+      "category_status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
+    },
+    "messages": {
+      "unauthorized": "Unauthorized access.",
+      "system_error": "Oops! Something didn’t go as planned. Please try again in a moment.",
+      "invalid_input": "Invalid input. Please check your data and try again.",
+      "data_not_found": "Requested data not found.",
+      "delete_restricted_error": "Unable to delete this record because it is linked to other records."
+    },
+    "confirm-dimiss-dialog": {
+      "title": "Discard changes?",
+      "description": "You have unsaved changes. Are you sure you want to close this dialog?",
+      "cancel": "Cancel",
+      "confirm": "Discard changes"
+    }
+  },
+  "components": {
+    "data-grid": {
+      "empty": {
+        "title": "No data",
+        "description": "No data available to display."
+      }
+    }
+  },
+  "modules": {
+    "categories": {
+      "meta": {
+        "title": "Categories"
+      },
+      "list": {
+        "columns": {
+          "name": "Name",
+          "slug": "Slug",
+          "status": "Status",
+          "product_count": "Products",
+          "created_by": "Created By",
+          "created_at": "Created At",
+          "actions": "Actions",
+          "stock": "Stock",
+          "no_stock": "No stock"
+        },
+        "filter": {
+          "search": {
+            "placeholder": "Search categories"
+          },
+          "status": {
+            "label": "All statuses",
+            "placeholder": "Filter by status"
+          }
+        },
+        "actions": {
+          "add": "Add Category",
+          "delete": "Delete {{count}} categories"
+        },
+        "empty": {
+          "title": "Categories",
+          "description": "No category yet! Create your first category to get started.",
+          "button": "Add Category"
+        },
+        "dropdown": {
+          "edit": "Edit",
+          "delete": "Delete",
+          "copy_id": {
+            "label": "Copy ID",
+            "success": "Category id copied to clipboard."
+          },
+          "status": {
+            "label": "Change status",
+            "success": "Category status updated successfully."
+          }
+        }
+      },
+      "dialogs": {
+        "delete": {
+          "title": "Confirm Delete",
+          "description": "Are you sure you want to delete the category ?",
+          "success": "Category deleted successfully.",
+          "cancel": "Cancel",
+          "confirm": "Delete"
+        },
+        "delete_group": {
+          "title": "Confirm Delete",
+          "description": "Are you sure you want to delete selected category ?",
+          "success": "Category deleted successfully.",
+          "cancel": "Cancel",
+          "confirm": "Delete"
+        },
+        "edit": {
+          "title": {
+            "add": "Add Category",
+            "edit": "Edit Category"
+          },
+          "success": {
+            "add": "Category added successfully.",
+            "edit": "Category updated successfully."
+          },
+          "error": {
+            "duplicate": "Name and slug must be unique.",
+            "edit": "Failed to update category."
+          },
+          "form": {
+            "name": {
+              "label": "Name",
+              "placeholder": "Enter name",
+              "validation": {
+                "nonempty": "Name is required.",
+                "min": "Name must be at least 2 characters long.",
+                "max": "Name must be maximum 30 characters long."
+              }
+            },
+            "slug": {
+              "label": "Slug",
+              "placeholder": "E.g: users:delete",
+              "description": "A unique key for the category, cannot be edited after creation.",
+              "validation": {
+                "nonempty": "Slug is required.",
+                "min": "Slug must be at least 2 characters long.",
+                "max": "Slug must be maximum 20 characters long."
+              }
+            },
+            "description": {
+              "label": "Description",
+              "placeholder": "Enter description",
+              "validation": {
+                "max": "Description must be maximum 500 characters long."
+              }
+            }
+          },
+          "actions": {
+            "cancel": "Cancel",
+            "submit": {
+              "add": "Add Category",
+              "edit": "Update Category"
+            }
+          }
+        }
+      }
+    }
+  }
+}

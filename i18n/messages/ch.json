@@ -1,0 +1,146 @@
+{
+  "common": {
+    "enums": {
+      "category_status": {
+        "active": "激活",
+        "inactive": "未激活"
+      }
+    },
+    "messages": {
+      "unauthorized": "未经授权的访问。",
+      "system_error": "糟糕！出了点问题，请稍后再试。",
+      "invalid_input": "输入无效。请检查您的数据并重试。",
+      "data_not_found": "未找到请求的数据。",
+      "delete_restricted_error": "无法删除此记录，因为它与其他记录有关联。"
+    },
+    "confirm-dimiss-dialog": {
+      "title": "放弃更改？",
+      "description": "您有未保存的更改。确定要关闭此对话框吗？",
+      "cancel": "取消",
+      "confirm": "放弃更改"
+    }
+  },
+  "components": {
+    "data-grid": {
+      "empty": {
+        "title": "没有数据",
+        "description": "暂无可显示的数据。"
+      }
+    }
+  },
+  "modules": {
+    "categories": {
+      "meta": {
+        "title": "类别"
+      },
+      "list": {
+        "columns": {
+          "name": "名称",
+          "slug": "标识符",
+          "status": "状态",
+          "product_count": "产品",
+          "created_by": "创建者",
+          "created_at": "创建时间",
+          "actions": "操作",
+          "stock": "有库存",
+          "no_stock": "无库存"
+        },
+        "filter": {
+          "search": {
+            "placeholder": "搜索类别"
+          },
+          "status": {
+            "label": "所有状态",
+            "placeholder": "按状态筛选"
+          }
+        },
+        "actions": {
+          "add": "添加类别",
+          "delete": "删除 {{count}} 个类别"
+        },
+        "empty": {
+          "title": "类别",
+          "description": "尚无类别！创建您的第一个类别以开始。",
+          "button": "添加类别"
+        },
+        "dropdown": {
+          "edit": "编辑",
+          "delete": "删除",
+          "copy_id": {
+            "label": "复制 ID",
+            "success": "类别 ID 已复制到剪贴板。"
+          },
+          "status": {
+            "label": "更改状态",
+            "success": "类别状态更新成功。"
+          }
+        }
+      },
+      "dialogs": {
+        "delete": {
+          "title": "确认删除",
+          "description": "确定要删除该类别吗？",
+          "success": "类别删除成功。",
+          "cancel": "取消",
+          "confirm": "删除"
+        },
+        "delete_group": {
+          "title": "确认删除",
+          "description": "确定要删除所选类别吗？",
+          "success": "类别删除成功。",
+          "cancel": "取消",
+          "confirm": "删除"
+        },
+        "edit": {
+          "title": {
+            "add": "添加类别",
+            "edit": "编辑类别"
+          },
+          "success": {
+            "add": "类别添加成功。",
+            "edit": "类别更新成功。"
+          },
+          "error": {
+            "duplicate": "名称和标识符必须唯一。",
+            "edit": "类别更新失败。"
+          },
+          "form": {
+            "name": {
+              "label": "名称",
+              "placeholder": "输入名称",
+              "validation": {
+                "nonempty": "名称为必填项。",
+                "min": "名称至少需要2个字符。",
+                "max": "名称最多30个字符。"
+              }
+            },
+            "slug": {
+              "label": "标识符",
+              "placeholder": "例如：users:delete",
+              "description": "类别的唯一键，创建后无法编辑。",
+              "validation": {
+                "nonempty": "标识符为必填项。",
+                "min": "标识符至少需要2个字符。",
+                "max": "标识符最多20个字符。"
+              }
+            },
+            "description": {
+              "label": "描述",
+              "placeholder": "输入描述",
+              "validation": {
+                "max": "描述最多500个字符。"
+              }
+            }
+          },
+          "actions": {
+            "cancel": "取消",
+            "submit": {
+              "add": "添加类别",
+              "edit": "更新类别"
+            }
+          }
+        }
+      }
+    }
+  }
+}
