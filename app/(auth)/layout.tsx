@@ -22,14 +22,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             />
           </Link> */}
           <p className="text-2xl font-semibold tracking-tight text-center pb-1">
-            Prototype
+            Victory Dasmariñas
           </p>
         </div>
         <div className="flex items-center grow w-full max-w-[375px]">
           {children}
         </div>
         <p className="text-sm text-muted-foreground text-center pt-10 lg:pt-5">
-          {currentYear} &copy; Kids Church.
+          {currentYear} &copy; Victory Dasmariñas - Kids Church.
         </p>
       </div>
 
@@ -52,7 +52,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
           <div className="flex flex-col items-center justify-center gap-2.5">
             <h3 className="text-3xl font-semibold text-white/90">
-            Prototype
+            Victory Dasmariñas
             </h3>
             <div className="text-md font-normal text-white/50">
             We partner with the parents to train and equip 

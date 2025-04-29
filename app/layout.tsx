@@ -16,7 +16,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'Kids Church',
-  description: 'Prototype',
+  description: 'Victory Dasmarinas',
 };
 
 export default async function RootLayout({

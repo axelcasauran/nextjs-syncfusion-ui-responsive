@@ -12,11 +12,11 @@ const Footer = () => {
           <div className="flex order-2 md:order-1  gap-2 font-normal text-sm">
             <span className="text-muted-foreground">{currentYear} &copy;</span>
             <a
-              href=""
+              href="https://www.facebook.com/victorydasmarinaskidschurch"
               target="_blank"
               className="text-muted-foreground hover:text-primary"
             >
-              Prototype - Kids Church
+              Victory Dasmarinas - Kids Church
             </a>
           </div>
           {/* <nav className="flex order-1 md:order-2 gap-4 font-normal text-sm text-muted-foreground">

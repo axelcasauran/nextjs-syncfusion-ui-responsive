@@ -11,7 +11,7 @@ import { Footer } from '.';
 // import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 import { DropDownButtonComponent } from '@syncfusion/ej2-react-splitbuttons';
 // import { MenuComponent } from '@syncfusion/ej2-react-navigations';
-// import { redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 // import Header from '@/app/components/syncfusion/header/header';
 import { AppBarComponent, SidebarComponent, TreeViewComponent } from '@syncfusion/ej2-react-navigations';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
@@ -22,92 +22,94 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
   // const isDesktop = useResponsive('up', 'lg');
 
   const resourcesDropdown = useRef<DropDownButtonComponent | null>(null);
-    const brandDropdown = useRef<DropDownButtonComponent | null>(null);
+  const brandDropdown = useRef<DropDownButtonComponent | null>(null);
 
-    const handleResize = (): void => {
-        if (resourcesDropdown.current && brandDropdown.current) {
-            closeDropdown(resourcesDropdown.current);
-            closeDropdown(brandDropdown.current);
-        }
+  const handleResize = (): void => {
+    if (resourcesDropdown.current && brandDropdown.current) {
+      closeDropdown(resourcesDropdown.current);
+      closeDropdown(brandDropdown.current);
+    }
+  };
+
+  const closeDropdown = (dropDown: DropDownButtonComponent): void => {
+    if (dropDown && dropDown.element.classList.contains('e-active')) {
+      dropDown.toggle();
+    }
+  };
+
+  useEffect(() => {
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+
+      window.removeEventListener('resize', handleResize);
     };
+  }, [handleResize]);
 
-    const closeDropdown = (dropDown: DropDownButtonComponent): void => {
-        if (dropDown && dropDown.element.classList.contains('e-active')) {
-            dropDown.toggle();
-        }
-    };
+  // const menuClick = (args: any): void => {
+  //     console.log(args);
+  //     if (args.item) {             
+  //       if (args.item.text == 'Kids') { 
+  //         console.log('Kids clicked');
+  //         redirect(`/parents/kids`);
+  //       }
+  //       else if (args.item.text == 'Volunteers') { 
+  //         redirect(`/admin/volunteers`);
+  //       }
+  //       else if (args.item.text == 'Services') { 
+  //         redirect(`/admin/service-and-events`);
+  //       }
+  //       else if (args.item.text == 'Syncfusion') { 
+  //         redirect(`/admin/syncfusion`);
+  //       }
+  //       else if (args.item.text == 'Users') { 
+  //         redirect(`/user-management/users`);
+  //       }
+  //       else if (args.item.text == 'Roles') { 
+  //         redirect(`/user-management/roles`);
+  //       }
+  //       else if (args.item.text == 'Permissions') { 
+  //         redirect(`/user-management/permissions`);
+  //       }
+  //     }
+  // };
 
-    useEffect(() => {
-
-        window.addEventListener('resize', handleResize);
-
-        return () => {
-
-            window.removeEventListener('resize', handleResize);
-        };
-    }, [handleResize]);
-
-    // const menuClick = (args: any): void => {
-    //     console.log(args);
-    //     if (args.item) {             
-    //       if (args.item.text == 'Kids') { 
-    //         console.log('Kids clicked');
-    //         redirect(`/parents/kids`);
-    //       }
-    //       else if (args.item.text == 'Volunteers') { 
-    //         redirect(`/admin/volunteers`);
-    //       }
-    //       else if (args.item.text == 'Services') { 
-    //         redirect(`/admin/service-and-events`);
-    //       }
-    //       else if (args.item.text == 'Syncfusion') { 
-    //         redirect(`/admin/syncfusion`);
-    //       }
-    //       else if (args.item.text == 'Users') { 
-    //         redirect(`/user-management/users`);
-    //       }
-    //       else if (args.item.text == 'Roles') { 
-    //         redirect(`/user-management/roles`);
-    //       }
-    //       else if (args.item.text == 'Permissions') { 
-    //         redirect(`/user-management/permissions`);
-    //       }
-    //     }
-    // };
+  const menuClick = (node: any): void => {
+    console.log(node);
+    if (node.node.textContent == 'Services') {
+      redirect(`/admin/service-and-events`);
+    }
+    else if (node.node.textContent == 'Syncfusion') {
+      redirect(`/admin/syncfusion`);
+    }
+    else if (node.node.textContent == 'Volunteers') {
+      redirect(`/admin/volunteers`);
+    }
+  };
 
 
-    const [isOpen, setIsOpen] = useState<boolean>(true);
-      const sidebarRef = useRef<SidebarComponent>(null);
-      const data: { [key: string]: Object }[] = [
-        {
-          nodeId: '01', nodeText: 'Installation',
-        },
-        {
-          nodeId: '02', nodeText: 'Deployment',
-        },
-        {
-          nodeId: '03', nodeText: 'Quick Start',
-        },
-        {
-          nodeId: '04', nodeText: 'Components',
-          nodeChild: [
-            { nodeId: '04-01', nodeText: 'Calendar' },
-            { nodeId: '04-02', nodeText: 'DatePicker' },
-            { nodeId: '04-03', nodeText: 'DateTimePicker' },
-            { nodeId: '04-04', nodeText: 'DateRangePicker' },
-            { nodeId: '04-05', nodeText: 'TimePicker' },
-            { nodeId: '04-06', nodeText: 'SideBar' }
-          ]
-        }
-      ];
-      const width: string = '220px';
-      const target: string = '.main-sidebar-content';
-      const mediaQuery: string = '(min-width: 600px)';
-      const fields: object = { dataSource: data, id: 'nodeId', text: 'nodeText', child: 'nodeChild' };
-    
-      const toggleSidebar = () => {
-        setIsOpen(!isOpen);
-      }
+  const [isOpen, setIsOpen] = useState<boolean>(true);
+  const sidebarRef = useRef<SidebarComponent>(null);
+  const data: { [key: string]: Object }[] = [
+    {
+      nodeId: '01', nodeText: 'Services',
+    },
+    {
+      nodeId: '02', nodeText: 'Syncfusion',
+    },
+    {
+      nodeId: '03', nodeText: 'Volunteers',
+    }
+  ];
+  const width: string = '220px';
+  const target: string = '.main-sidebar-content';
+  const mediaQuery: string = '(min-width: 600px)';
+  const fields: object = { dataSource: data, id: 'nodeId', text: 'nodeText', child: 'nodeChild' };
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  }
 
   return (
     <div className="flex grow">
@@ -121,27 +123,27 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
         <div className="flex flex-col grow bg-content border-border">
           {/* <Header/> */}
           <section className="bg-gray-50 dark:bg-gray-950">
-            
-              <div>
-                <AppBarComponent>
-                  <ButtonComponent cssClass="e-inherit" iconCss="e-icons e-menu" onClick={toggleSidebar}></ButtonComponent>
-                  <div className="e-folder">
-                    <div className="e-folder-name">Navigation Pane</div>
-                  </div>
-                </AppBarComponent>
-              </div>
-              <SidebarComponent id="sideTree" className="sidebar-treeview" ref={sidebarRef} width={width} target={target} mediaQuery={mediaQuery} isOpen={isOpen}>
-                <div className='res-main-menu'>
-                  <div className="table-content">
-                    <TextBoxComponent id="resSearch" placeholder="Search..."></TextBoxComponent>
-                    <p className="main-menu-header">TABLE OF CONTENTS</p>
-                  </div>
-                  <div>
-                    <TreeViewComponent id='mainTree' cssClass="main-treeview" fields={fields} expandOn='Click' />
-                  </div>
+
+            <div>
+              <AppBarComponent>
+                <ButtonComponent cssClass="e-inherit" iconCss="e-icons e-menu" onClick={toggleSidebar}></ButtonComponent>
+                <div className="e-folder">
+                  <div className="e-folder-name">UI/UX Prototype</div>
                 </div>
-              </SidebarComponent>
-              {/* <div className="border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
+              </AppBarComponent>
+            </div>
+            <SidebarComponent id="sideTree" className="sidebar-treeview" ref={sidebarRef} width={width} target={target} mediaQuery={mediaQuery} isOpen={isOpen}>
+              <div className='res-main-menu'>
+                <div className="table-content">
+                  <TextBoxComponent id="resSearch" placeholder="Search..."></TextBoxComponent>
+                  <p className="main-menu-header">Admin</p>
+                </div>
+                <div>
+                  <TreeViewComponent id='mainTree' cssClass="main-treeview" fields={fields} nodeClicked={menuClick} expandOn='Click' />
+                </div>
+              </div>
+            </SidebarComponent>
+            {/* <div className="border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700">
                 <div className="flex items-center justify-between ms-6 me-2.5 lg:me-6 py-2">
                   <div className="flex items-center">
                     <img className="mr-3 h-7" src="/brand/logo.svg" width={35} height={35} alt="kids church" />
@@ -168,7 +170,7 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
                   </div>
                 </div>
               </div> */}
-           
+
           </section>
           <div className="flex flex-col grow overflow-y-auto pt-3 main-sidebar-content">
             <div className="sidebar-content flex flex-col min-h-full">

@@ -1,6 +1,7 @@
 'use client';
 
 // import { Metadata } from 'next';
+import React, { use } from 'react';
 import { Container } from '@/app/components/common/container';
 import RecordPage from './components/record';
 // import { BreadcrumbComponent, BreadcrumbItemDirective, BreadcrumbItemsDirective } from '@syncfusion/ej2-react-navigations';
@@ -10,7 +11,8 @@ import RecordPage from './components/record';
 // import { MoveLeft } from 'lucide-react';
 // import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
 
-export default function Page() {
+export default function Page({params}: {params: Promise<{ id: string }>;}) {
+  const { id } = use(params);
   const isLoading = false; // Define isLoading with an initial value
 
   return (
@@ -38,7 +40,7 @@ export default function Page() {
           
         {/* </Card> */}
         <RecordPage
-            id={'new'}
+            id={id}
             isLoading={isLoading}
           />
       </Container>

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
@@ -32,6 +33,7 @@ const RecordPage = ({
     isLoading: boolean;
 }) => {
 
+    const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const Loading = () => (
         <Card>
             <CardContent>
@@ -90,15 +92,6 @@ const RecordPage = ({
         </Card>
     );
 
-    // +++++++ DEPARTMENT
-    const [department, setDepartment] = useState([]);
-    useEffect(() => {
-        fetch('/api/admin/departments')
-            .then(res => res.json())
-            .then(data => setDepartment(data.result));
-    }, []);
-    const fields = { text: 'name', value: 'id' };
-
     const form = useForm<FormSchemaData>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -111,6 +104,52 @@ const RecordPage = ({
             isActive: false,
         },
     });
+
+    // Add this after your initial state declarations
+    useEffect(() => {
+        console.log('RECORD TO LOAD -> ', id);
+        if (id && id !== 'new') {
+            const encoded = id;
+            const decoded = decodeURIComponent(encoded);
+            const _ID = decoded.split(",");
+            setSelectedRecords(_ID);
+            // Fetch record data using the ID
+            fetch(`${API.service.get}/${selectedRecords[0]}`)
+                .then(res => res.json())
+                .then(data => {
+                    // Set form values with fetched data
+                    form.reset({
+                        name: data.name,
+                        location: data.location,
+                        type: data.type,
+                        startDate: new Date(data.startDate),
+                        endDate: data.endDate ? new Date(data.endDate) : null,
+                        description: data.description,
+                        isActive: data.isActive
+                    });
+
+                    // Set detail records if any
+                    if (data.details) {
+                        setFormDetailPage({
+                            result: data.result || [], // The array of records
+                            count: data.count || data.result?.length // Total count of records
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching record:', error);
+                });
+        }
+    }, [id, form]);
+
+    // +++++++ DEPARTMENT
+    const [department, setDepartment] = useState([]);
+    const fields = { text: 'name', value: 'id' };
+    useEffect(() => {
+        fetch('/api/admin/departments')
+            .then(res => res.json())
+            .then(data => setDepartment(data.result));
+    }, []);
 
     const toolbarOptionsDetails = ['Add', 'Delete', 'Update', 'Cancel', 'Search'];
     const gridRef = useRef<any>(null);
@@ -264,19 +303,35 @@ const RecordPage = ({
     //     })();
     // };
 
+    const handlePageChange = async (page: number, pageSize: number) => {
+        try {
+          const response = await fetch(`${API.service.get}?page=${page}&pageSize=${pageSize}`);
+          const data = await response.json();
+    
+          setFormPage({
+            result: data.result,
+            count: data.count // Total count should remain the same
+          });
+        } catch (error) {
+          console.error('Error fetching page:', error);
+        }
+      };
 
     const Content = () => {
         return (
             // <>
             <div className="flex flex-col h-full">
-                    <Toolbar
-                        showSave
-                        showAddNew
-                        showPager
-                        title='SI-1000101'
-                    // formRef={formRef}
-                    // onSave={onSave}
-                    />
+                <Toolbar
+                    showSave
+                    showAddNew
+                    showPager
+                    title='SI-1000101'
+                    totalRecords={selectedRecords.length || 1}
+                    currentPage={1}
+                    selectedRecords={selectedRecords}
+                // formRef={formRef}
+                // onSave={onSave}
+                />
                 <div className="flex-1 overflow-auto">
                     <TabComponent>
                         <TabItemsDirective>

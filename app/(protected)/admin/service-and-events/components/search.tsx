@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
@@ -11,9 +12,9 @@ const SearchPage = () => {
 
   // const toolbarOptions = [{ text: 'Add New', tooltipText: 'Create New', prefixIcon: 'e-plus', id: 'btnCreateNew' }, 'Search'];
   const gridRef = useRef<any>(null);
-  const [formPage, setFormPage] = useState<{ result: any[], count: number }>({ 
-    result: [], 
-    count: 0 
+  const [formPage, setFormPage] = useState<{ result: any[], count: number }>({
+    result: [],
+    count: 0
   });
 
 
@@ -48,11 +49,17 @@ const SearchPage = () => {
   // }
 
   const rowSelected = (args: any) => {
-    const userId = args.rowData.id;
-    redirect(`/admin/service-and-events/${userId}`);
+    const selectedRecords = gridRef.current.getSelectedRecords();
+    if (selectedRecords && selectedRecords.length > 0) {
+      // Join multiple IDs with commas
+      const selectedIds = selectedRecords.map((record: any) => record.id).join(',');
+      console.log('Selected IDs:', selectedIds);
+      redirect(`/admin/service-and-events/${selectedIds}`);
+    }
   }
 
   const mainGridColumns = [
+    { type: 'checkbox', width: 30, isPrimaryKey: true, allowResizing: false, textAlign: 'Center' },
     { field: 'type', headerText: 'Type', width: 100 },
     { field: 'name', headerText: 'Name', width: 100 },
     { field: 'description', headerText: 'Description', width: 100, hideAtMedia: true },
@@ -80,7 +87,7 @@ const SearchPage = () => {
     try {
       const response = await fetch(`${API.service.get}?page=${page}&pageSize=${pageSize}`);
       const data = await response.json();
-      
+
       setFormPage({
         result: data.result,
         count: data.count // Total count should remain the same
@@ -94,7 +101,7 @@ const SearchPage = () => {
     try {
       const response = await fetch(`${API.service.get}?search=${encodeURIComponent(searchText)}`);
       const data = await response.json();
-      
+
       setFormPage({
         result: data.result,
         count: data.count
@@ -121,7 +128,8 @@ const SearchPage = () => {
             showSearch: true,
             showAddNew: true,
             showOpen: true,
-            onAddNew: () => redirect('/admin/service-and-events/new')
+            onAddNew: () => redirect('/admin/service-and-events/new'),
+            onOpenSelected: () => { rowSelected({ rowData: formPage.result.filter((item) => item.isActive) }) },
           }}
         />
       </div>
