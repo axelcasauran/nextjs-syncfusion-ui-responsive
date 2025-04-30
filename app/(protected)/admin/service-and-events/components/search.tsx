@@ -60,12 +60,21 @@ const SearchPage = () => {
 
   const mainGridColumns = [
     { type: 'checkbox', width: 30, isPrimaryKey: true, allowResizing: false, textAlign: 'Center' },
-    { field: 'type', headerText: 'Type', width: 100 },
+    { field: 'type', headerText: 'Type', width: 45 },
     { field: 'name', headerText: 'Name', width: 100 },
     { field: 'description', headerText: 'Description', width: 100, hideAtMedia: true },
     {
-      field: 'date',
-      headerText: 'Date',
+      field: 'startDate',
+      headerText: 'Start Date',
+      width: 80,
+      type: 'date',
+      format: 'dd/MM/yyyy hh:mm a',
+      visible: true,
+      hideAtMedia: true // Will hide on screens smaller than tablet
+    },
+    {
+      field: 'endDate',
+      headerText: 'End Date',
       width: 80,
       type: 'date',
       format: 'dd/MM/yyyy hh:mm a',
@@ -76,8 +85,9 @@ const SearchPage = () => {
     {
       field: 'isActive',
       headerText: 'Active',
-      width: 50,
-      template: checkBoxTemplate,
+      width: 40,
+      type: 'boolean',
+      displayAsCheckBox: true,
       textAlign: 'Center',
       hideAtMedia: true
     }

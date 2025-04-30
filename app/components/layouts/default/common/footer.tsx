@@ -16,7 +16,7 @@ const Footer = () => {
               target="_blank"
               className="text-muted-foreground hover:text-primary"
             >
-              Victory Dasmarinas - Kids Church
+              Prototype - Kids Church
             </a>
           </div>
           {/* <nav className="flex order-1 md:order-2 gap-4 font-normal text-sm text-muted-foreground">

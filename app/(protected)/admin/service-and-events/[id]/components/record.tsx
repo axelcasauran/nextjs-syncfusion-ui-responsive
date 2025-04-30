@@ -34,6 +34,8 @@ const RecordPage = ({
 }) => {
 
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
+    const [page, setPage] = useState(1);
+    let ID: string[] = [];
     const Loading = () => (
         <Card>
             <CardContent>
@@ -112,35 +114,40 @@ const RecordPage = ({
             const encoded = id;
             const decoded = decodeURIComponent(encoded);
             const _ID = decoded.split(",");
+            ID = _ID;
             setSelectedRecords(_ID);
-            // Fetch record data using the ID
-            fetch(`${API.service.get}/${selectedRecords[0]}`)
-                .then(res => res.json())
-                .then(data => {
-                    // Set form values with fetched data
-                    form.reset({
-                        name: data.name,
-                        location: data.location,
-                        type: data.type,
-                        startDate: new Date(data.startDate),
-                        endDate: data.endDate ? new Date(data.endDate) : null,
-                        description: data.description,
-                        isActive: data.isActive
-                    });
-
-                    // Set detail records if any
-                    if (data.details) {
-                        setFormDetailPage({
-                            result: data.result || [], // The array of records
-                            count: data.count || data.result?.length // Total count of records
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching record:', error);
-                });
+            loadRecord(0);
         }
     }, [id, form]);
+
+    const loadRecord = async (index: number) => {
+        // Fetch record data using the ID
+        fetch(`${API.service.get}/${ID[index] || selectedRecords[index]}`)
+            .then(res => res.json())
+            .then(data => {
+                // Set form values with fetched data
+                form.reset({
+                    name: data.name,
+                    location: data.location,
+                    type: data.type,
+                    startDate: new Date(data.startDate),
+                    endDate: data.endDate ? new Date(data.endDate) : null,
+                    description: data.description,
+                    isActive: data.isActive
+                });
+
+                // Set detail records if any
+                if (data.details) {
+                    setFormDetailPage({
+                        result: data.result || [], // The array of records
+                        count: data.count || data.result?.length // Total count of records
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching record:', error);
+            });
+    }
 
     // +++++++ DEPARTMENT
     const [department, setDepartment] = useState([]);
@@ -303,19 +310,15 @@ const RecordPage = ({
     //     })();
     // };
 
-    const handlePageChange = async (page: number, pageSize: number) => {
+    const handlePageChange = async (page: number) => {
         try {
-          const response = await fetch(`${API.service.get}?page=${page}&pageSize=${pageSize}`);
-          const data = await response.json();
-    
-          setFormPage({
-            result: data.result,
-            count: data.count // Total count should remain the same
-          });
+            console.log('Page changed:', page);
+            await loadRecord(page-1);
+            setPage(page);
         } catch (error) {
-          console.error('Error fetching page:', error);
+            console.error('Error fetching page:', error);
         }
-      };
+    };
 
     const Content = () => {
         return (
@@ -325,10 +328,11 @@ const RecordPage = ({
                     showSave
                     showAddNew
                     showPager
-                    title='SI-1000101'
+                    title='Service and Events'
                     totalRecords={selectedRecords.length || 1}
-                    currentPage={1}
+                    currentPage={page}
                     selectedRecords={selectedRecords}
+                    onPageChange={handlePageChange}
                 // formRef={formRef}
                 // onSave={onSave}
                 />
@@ -364,7 +368,7 @@ const RecordPage = ({
                                     </div>
                                 )}
                             ></TabItemDirective>
-                            <TabItemDirective header={{ text: 'Flow' }}
+                            <TabItemDirective header={{ text: 'History' }}
                                 content={() => (
                                     // <SyncfusionGrid
                                     //             columns={detailGridColumns}

@@ -14,6 +14,7 @@ export interface GridColumn {
   allowFiltering?: boolean;
   hideAtMedia?: boolean;
   allowResizing?: boolean;
+  displayAsCheckBox?: boolean;
   template?: (props: any) => JSX.Element;
   editTemplate?: (props: any) => JSX.Element;
 }

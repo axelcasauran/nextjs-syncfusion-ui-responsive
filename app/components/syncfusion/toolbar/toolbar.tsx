@@ -50,25 +50,26 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
     const getPageRange = (currentPage: number, totalRecords: number) => {
         if (totalRecords === 0) return '0/0';
-        const start = (currentPage - 1) + 1;
-        const end = Math.min(currentPage, totalRecords);
-        return `${start}-${end}/${totalRecords}`;
+        // const start = (currentPage - 1) + 1;
+        // const end = Math.min(currentPage, totalRecords);
+        return `${currentPage}/${totalRecords}`;
     };
 
     return (
         <div className="sticky top-0 z-50 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-            <div className="flex flex-wrap items-center gap-2">
-                {/* Title - hidden on mobile */}
-                {title && (
-                    <div className="hidden md:block">
-                        <h2 className="text-lg font-semibold">{title}</h2>
-                    </div>
-                )}
-
-                <div className="flex-1" />
-
+            <div className="flex flex-wrap items-center justify-between gap-2">
+                {/* Left side - Title */}
+                <div className="hidden md:block">
+                    {/* Title - hidden on mobile */}
+                    {title && (
+                        <div className="hidden md:block">
+                            <h2 className="text-lg font-semibold">{title}</h2>
+                        </div>
+                    )}
+                </div>
                 {/* Action Buttons */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 md:ml-auto">
+                    {/* <div className="flex-1" /> */}
                     {showAddNew && (
                         <>
                             <div className="block md:hidden">
@@ -88,7 +89,6 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             </div>
                         </>
                     )}
-
                     {showSave && (
                         <>
                             <div className="block md:hidden">
@@ -121,7 +121,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                 <ButtonComponent
                                     iconCss="e-icons e-undo"
                                     onClick={handleSave}
-                                    content="Cancel"
+                                    content="Undo"
                                     cssClass="e-outline"
                                 />
                             </div>
@@ -133,7 +133,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                                 <ButtonComponent
                                     iconCss="e-icons e-trash"
                                     onClick={handleSave}
-                                    cssClass="e-warning"
+                                    cssClass="e-outline e-warning"
                                 />
                             </div>
                             <div className="hidden md:block">
@@ -146,29 +146,29 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             </div>
                         </>
                     )}
-
-                    {showPager && (
-                        <div className="hidden md:flex items-center gap-2">
-                            <ButtonComponent
-                                iconCss="e-icons e-chevron-left"
-                                cssClass={`e-primary ${currentPage <= 1 ? 'e-disabled' : ''}`}
-                                onClick={() => onPageChange?.(currentPage - 1)}
-                                disabled={currentPage <= 1}
-                            />
-
-                            <span className="text-sm text-gray-600 min-w-[80px] text-center">
-                                {getPageRange(currentPage, totalRecords)}
-                            </span>
-
-                            <ButtonComponent
-                                iconCss="e-icons e-chevron-right"
-                                cssClass={`e-primary ${currentPage >= totalRecords ? 'e-disabled' : ''}`}
-                                onClick={() => onPageChange?.(currentPage + 1)}
-                                disabled={currentPage >= totalRecords}
-                            />
-                        </div>
-                    )}
                 </div>
+                {/* <div className="flex-1" /> */}            
+
+                {/* Right side - Pager */}
+                {showPager && (
+                    <div className="flex items-center gap-1 md:gap-2">
+                        <ButtonComponent
+                            iconCss="e-icons e-chevron-left"
+                            cssClass={`e-primary ${currentPage <= 1 ? 'e-disabled' : ''}`}
+                            onClick={() => { onPageChange?.(currentPage - 1); getPageRange(currentPage - 1, totalRecords) }}
+                            disabled={currentPage <= 1}
+                        />
+                        <span className="text-xs md:text-sm text-gray-600 min-w-[40px] md:min-w-[60px] text-center">
+                            {getPageRange(currentPage, totalRecords)}
+                        </span>
+                        <ButtonComponent
+                            iconCss="e-icons e-chevron-right"
+                            cssClass={`e-primary ${currentPage >= totalRecords ? 'e-disabled' : ''}`}
+                            onClick={() => { onPageChange?.(currentPage + 1); getPageRange(currentPage + 1, totalRecords) }}
+                            disabled={currentPage >= totalRecords}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );

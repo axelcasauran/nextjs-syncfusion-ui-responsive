@@ -98,6 +98,7 @@ export const SyncfusionGrid = ({
 
   // Update getPageRange to use filteredCount when available
   const getPageRange = (currentPage: number, pageSize: number, totalRecords: number) => {
+    console.log('getPageRange -> ', currentPage);
     if (totalRecords === 0) return '0/0';
     const start = ((currentPage - 1) * pageSize) + 1;
     const end = Math.min(currentPage * pageSize, totalRecords);
