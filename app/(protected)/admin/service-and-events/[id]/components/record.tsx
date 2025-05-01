@@ -4,15 +4,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { ButtonComponent, SwitchComponent } from '@syncfusion/ej2-react-buttons';
-import { DatePickerComponent } from '@syncfusion/ej2-react-calendars';
-import { DropDownButtonComponent } from '@syncfusion/ej2-react-splitbuttons';
-import { TextAreaComponent, TextBoxComponent, UploaderComponent } from '@syncfusion/ej2-react-inputs';
 import { TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { User } from '@/app/models/user';
-import { DialogComponent } from '@syncfusion/ej2-react-popups';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ColumnDirective, ColumnsDirective, MultiColumnComboBoxComponent } from '@syncfusion/ej2-react-multicolumn-combobox';
@@ -33,9 +27,11 @@ const RecordPage = ({
     isLoading: boolean;
 }) => {
 
+    // DECLARE VARIABLES
+    let IDs: string[] = [];
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const [page, setPage] = useState(1);
-    let ID: string[] = [];
+
     const Loading = () => (
         <Card>
             <CardContent>
@@ -107,14 +103,13 @@ const RecordPage = ({
         },
     });
 
-    // Add this after your initial state declarations
+    // FORM CONFIGURATION
     useEffect(() => {
-        console.log('RECORD TO LOAD -> ', id);
         if (id && id !== 'new') {
             const encoded = id;
             const decoded = decodeURIComponent(encoded);
             const _ID = decoded.split(",");
-            ID = _ID;
+            IDs = _ID;
             setSelectedRecords(_ID);
             loadRecord(0);
         }
@@ -122,7 +117,7 @@ const RecordPage = ({
 
     const loadRecord = async (index: number) => {
         // Fetch record data using the ID
-        fetch(`${API.service.get}/${ID[index] || selectedRecords[index]}`)
+        fetch(`${API.service.get}/${IDs[index] || selectedRecords[index]}`)
             .then(res => res.json())
             .then(data => {
                 // Set form values with fetched data
@@ -149,7 +144,12 @@ const RecordPage = ({
             });
     }
 
-    // +++++++ DEPARTMENT
+    // GRID CONFIGURATION
+    const toolbarOptionsDetails = ['Add', 'Delete', 'Update', 'Cancel', 'Search'];
+    const gridRef = useRef<any>(null);
+
+    // CONTROL HANDLER
+    // +++++++ DEPARTMENT +++++++
     const [department, setDepartment] = useState([]);
     const fields = { text: 'name', value: 'id' };
     useEffect(() => {
@@ -157,15 +157,15 @@ const RecordPage = ({
             .then(res => res.json())
             .then(data => setDepartment(data.result));
     }, []);
+    const formRef = useRef<HTMLFormElement>(null);
+    const [formPage, setFormPage] = useState([])
 
-    const toolbarOptionsDetails = ['Add', 'Delete', 'Update', 'Cancel', 'Search'];
-    const gridRef = useRef<any>(null);
+    
     const [formDetailPage, setFormDetailPage] = useState<{ result: any[], count: number }>({
         result: [],
         count: 0
     });
-    const formRef = useRef<HTMLFormElement>(null);
-    const [formPage, setFormPage] = useState([])
+    
 
     const userSelection = ((data: any) => {
         console.log(data);
@@ -313,7 +313,7 @@ const RecordPage = ({
     const handlePageChange = async (page: number) => {
         try {
             console.log('Page changed:', page);
-            await loadRecord(page-1);
+            await loadRecord(page - 1);
             setPage(page);
         } catch (error) {
             console.error('Error fetching page:', error);

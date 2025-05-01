@@ -7,7 +7,6 @@ import { DateTimePickerComponent } from '@syncfusion/ej2-react-calendars';
 import { CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
 import { TextAreaComponent } from '@syncfusion/ej2-react-inputs';
 import { Control, Controller, FieldErrors, FieldValues, Path } from 'react-hook-form';
-// import { getColSpanClass, getGridColsClass } from './column-utils';
 
 interface ResponsiveValue {
     xs?: number;
@@ -38,7 +37,7 @@ const getResponsiveClass = (value: ResponsiveValue | undefined, prefix: string) 
     if (!value) return '';
     return Object.entries(value)
         .map(([breakpoint, cols]) => {
-            switch(breakpoint) {
+            switch (breakpoint) {
                 case 'xs': return `${prefix}-${cols}`;
                 case 'sm': return `sm:${prefix}-${cols}`;
                 case 'md': return `md:${prefix}-${cols}`;
@@ -146,10 +145,10 @@ const FormRow = <T extends FieldValues>({ fields, columns }: FormRowProps<T>) =>
         <div className={`grid gap-4 ${gridClass}`}>
             {fields.map((field) => {
                 const colSpanClass = getResponsiveClass(field.colSpan, 'col-span');
-                
+
                 return (
-                    <div 
-                        key={field.name as string}                 
+                    <div
+                        key={field.name as string}
                         className={`flex flex-col gap-1 ${colSpanClass}`}
                     >
                         <label>
@@ -170,13 +169,15 @@ const FormRow = <T extends FieldValues>({ fields, columns }: FormRowProps<T>) =>
 };
 
 export interface SyncfusionFormProps<T extends FieldValues> {
-    rows: (FormRowProps<T> & { columns?: ResponsiveValue; spacing?: {
-        x?: number;
-        y?: number;
-    };
-    className?: string; })[];
+    rows: (FormRowProps<T> & {
+        columns?: ResponsiveValue; spacing?: {
+            x?: number;
+            y?: number;
+        };
+        className?: string;
+    })[];
     control: Control<T>;
-    errors?: FieldErrors<T>; // Add errors prop
+    errors?: FieldErrors<T>;
     className?: string;
 }
 

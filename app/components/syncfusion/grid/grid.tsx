@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client';
 
 import {
   ColumnDirective,
@@ -39,7 +38,7 @@ export const SyncfusionGrid = ({
   onPageChange,
   onSearch,
   gridRef,
-  pageSettings,  // Add this to props
+  pageSettings,
 }: SyncfusionGridProps) => {
   const processedColumns = columns.map(column => ({
     ...column,
@@ -183,8 +182,10 @@ export const SyncfusionGrid = ({
               <h1 className="text-lg">{toolbar.title}</h1>
             )}
           </div>
+          {/* Spacer - grows to fill space */}
           <div className="flex-1"></div>
-          {/* Search - grows to fill space */}
+
+          {/* Search */}
           {toolbar.showSearch && (
             <div>
               <div className="relative w-64">

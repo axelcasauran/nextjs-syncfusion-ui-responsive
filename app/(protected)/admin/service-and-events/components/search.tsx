@@ -4,19 +4,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { API } from '@/app/framework/helper/api';
-import { CheckBoxComponent } from '@syncfusion/ej2-react-buttons';
-import { redirect } from 'next/navigation';
+import { useRouter  } from 'next/navigation';
 import { SyncfusionGrid } from '@/app/components/syncfusion/grid/grid';
 
 const SearchPage = () => {
 
-  // const toolbarOptions = [{ text: 'Add New', tooltipText: 'Create New', prefixIcon: 'e-plus', id: 'btnCreateNew' }, 'Search'];
+  const router = useRouter();
   const gridRef = useRef<any>(null);
-  const [formPage, setFormPage] = useState<{ result: any[], count: number }>({
-    result: [],
-    count: 0
-  });
-
+  const [formPage, setFormPage] = useState<{ result: any[], count: number }>({result: [], count: 0 });
 
   useEffect(() => {
     fetch(API.service.get)
@@ -29,35 +24,44 @@ const SearchPage = () => {
       });
   }, []);
 
-
-  const checkBoxTemplate = ((data: any) => {
-    return (
-      <div>
-        <CheckBoxComponent checked={data} disabled={true} />
-      </div>
-    )
-  });
-
-
-  // const clickHandler = (args: any) => {
-  //   console.log(args);
-  //   if (args.item) {
-  //     if (gridRef && args.item.id === 'btnCreateNew') {
-  //       redirect(`/admin/service-and-events/${'new'}`);
-  //     }
-  //   }
-  // }
-
   const rowSelected = (args: any) => {
     const selectedRecords = gridRef.current.getSelectedRecords();
     if (selectedRecords && selectedRecords.length > 0) {
-      // Join multiple IDs with commas
       const selectedIds = selectedRecords.map((record: any) => record.id).join(',');
-      console.log('Selected IDs:', selectedIds);
-      redirect(`/admin/service-and-events/${selectedIds}`);
+      router.push(`/admin/service-and-events/${selectedIds}`);
     }
   }
 
+  const handlePageChange = async (page: number, pageSize: number) => {
+    try {
+      const response = await fetch(`${API.service.get}?page=${page}&pageSize=${pageSize}`);
+      const data = await response.json();
+
+      setFormPage({
+        result: data.result,
+        count: data.count
+      });
+    } catch (error) {
+      console.error('Error fetching page:', error);
+    }
+  };
+
+  const handleSearch = async (searchText: string) => {
+    try {
+      const response = await fetch(`${API.service.get}?search=${encodeURIComponent(searchText)}`);
+      const data = await response.json();
+
+      setFormPage({
+        result: data.result,
+        count: data.count
+      });
+    } catch (error) {
+      console.error('Error searching:', error);
+    }
+  };
+
+  // GRID COLUMN CONFIGURATION
+  // This is the configuration for the grid columns. You can modify it as per your requirements.
   const mainGridColumns = [
     { type: 'checkbox', width: 30, isPrimaryKey: true, allowResizing: false, textAlign: 'Center' },
     { field: 'type', headerText: 'Type', width: 45 },
@@ -79,7 +83,7 @@ const SearchPage = () => {
       type: 'date',
       format: 'dd/MM/yyyy hh:mm a',
       visible: true,
-      hideAtMedia: true // Will hide on screens smaller than tablet
+      hideAtMedia: true
     },
     { field: 'location', headerText: 'Location', width: 100, hideAtMedia: true },
     {
@@ -92,34 +96,6 @@ const SearchPage = () => {
       hideAtMedia: true
     }
   ];
-
-  const handlePageChange = async (page: number, pageSize: number) => {
-    try {
-      const response = await fetch(`${API.service.get}?page=${page}&pageSize=${pageSize}`);
-      const data = await response.json();
-
-      setFormPage({
-        result: data.result,
-        count: data.count // Total count should remain the same
-      });
-    } catch (error) {
-      console.error('Error fetching page:', error);
-    }
-  };
-
-  const handleSearch = async (searchText: string) => {
-    try {
-      const response = await fetch(`${API.service.get}?search=${encodeURIComponent(searchText)}`);
-      const data = await response.json();
-
-      setFormPage({
-        result: data.result,
-        count: data.count
-      });
-    } catch (error) {
-      console.error('Error searching:', error);
-    }
-  };
 
   return (
     <>
@@ -138,7 +114,7 @@ const SearchPage = () => {
             showSearch: true,
             showAddNew: true,
             showOpen: true,
-            onAddNew: () => redirect('/admin/service-and-events/new'),
+            onAddNew: () => router.push('/admin/service-and-events/new'),
             onOpenSelected: () => { rowSelected({ rowData: formPage.result.filter((item) => item.isActive) }) },
           }}
         />
