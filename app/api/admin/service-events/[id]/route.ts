@@ -5,7 +5,6 @@ import { prisma } from '@/lib/prisma';
 import { systemLog } from '@/services/system-log';
 import {
   FormSchema,
-  FormSchemaType,
 } from '@/app/(protected)/admin/syncfusion/forms/forms';
 import authOptions from '@/app/api/auth/[...nextauth]/auth-options';
 
@@ -70,7 +69,7 @@ export async function PUT(
     }
 
     // Check if record exists
-    const existingDepartment= await prisma.department.findUnique({
+    const existingDepartment= await prisma.service.findUnique({
       where: { id },
     });
     if (!existingDepartment) {
@@ -86,12 +85,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid input.' }, { status: 400 });
     }
 
-    const { name, slug, description }: FormSchemaType = parsedData.data;
+    // const { name, slug, description }: FormSchemaType = parsedData.data;
 
     // Update the department
-    const updatedDepartment= await prisma.department.update({
+    const updatedDepartment= await prisma.service.update({
       where: { id },
-      data: { name, slug, description },
+      data: parsedData
     });
 
     // Log

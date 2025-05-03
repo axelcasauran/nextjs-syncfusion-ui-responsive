@@ -17,15 +17,17 @@ interface ResponsiveValue {
 
 interface FormFieldProps<T extends FieldValues> {
     name: keyof T;
-    label: string;
-    type: 'text' | 'combo' | 'datetime' | 'checkbox' | 'textarea';
+    label?: string;
+    type?: 'text' | 'combo' | 'datetime' | 'checkbox' | 'textarea';
     textareaRow?: 1 | 2 | 3;
     required?: boolean;
     placeholder?: string;
     options?: any[];
-    control: Control<T>;
+    control?: Control<T>;
     error?: any;
     colSpan?: ResponsiveValue;
+    cssClass?: string;
+    hidden?: boolean;
 }
 
 export interface FormRowProps<T extends FieldValues> {
@@ -144,6 +146,7 @@ const FormRow = <T extends FieldValues>({ fields, columns }: FormRowProps<T>) =>
     return (
         <div className={`grid gap-4 ${gridClass}`}>
             {fields.map((field) => {
+                if(field.hidden) return null;
                 const colSpanClass = getResponsiveClass(field.colSpan, 'col-span');
 
                 return (
@@ -157,7 +160,9 @@ const FormRow = <T extends FieldValues>({ fields, columns }: FormRowProps<T>) =>
                                 <span className="text-red-600 dark:text-red-400 font-normal">*</span>
                             )}
                         </label>
-                        <FormField field={field} control={field.control} error={field.error} />
+                        {field.control && (
+                            <FormField field={field} control={field.control} error={field.error} />
+                        )}
                         {field.error && (
                             <p className="text-red-500 text-xs">{field.error.message}</p>
                         )}

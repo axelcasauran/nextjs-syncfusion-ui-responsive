@@ -19,19 +19,12 @@ import { API } from '@/app/framework/helper/api';
 import { FormSchema, FormSchemaData } from '../../forms/forms';
 import { Toolbar } from '@/app/components/syncfusion/toolbar/toolbar';
 
-const RecordPage = ({
-    id,
-    isLoading,
-}: {
-    id: string;
-    isLoading: boolean;
-}) => {
+const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // DECLARE VARIABLES
     let IDs: string[] = [];
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const [page, setPage] = useState(1);
-
     const Loading = () => (
         <Card>
             <CardContent>
@@ -90,9 +83,11 @@ const RecordPage = ({
         </Card>
     );
 
+    // FORM CONFIGURATION
     const form = useForm<FormSchemaData>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
+            id: id || 'new',
             name: "",
             location: "",
             type: "",
@@ -102,8 +97,8 @@ const RecordPage = ({
             isActive: false,
         },
     });
-
-    // FORM CONFIGURATION
+    const formRef = useRef<HTMLFormElement>(null!);
+    const [formPage, setFormPage] = useState([])
     useEffect(() => {
         if (id && id !== 'new') {
             const encoded = id;
@@ -115,6 +110,40 @@ const RecordPage = ({
         }
     }, [id, form]);
 
+    // GRID CONFIGURATION
+    const toolbarOptionsDetails = ['Add', 'Delete', 'Update', 'Cancel', 'Search'];
+    const gridRef = useRef<any>(null);
+    const [formDetailPage, setFormDetailPage] = useState<{ result: any[], count: number }>({
+        result: [],
+        count: 0
+    });
+
+    // CONTROL HANDLERS
+    // DEPARTMENT COMBOBOX
+    const [department, setDepartment] = useState([]);
+    const fields = { text: 'name', value: 'id' };
+    useEffect(() => {
+        fetch('/api/admin/departments')
+            .then(res => res.json())
+            .then(data => setDepartment(data.result));
+    }, []);
+    // USER COMBOBOX
+    const userSelection = ((data: any) => {
+        console.log(data);
+        return (
+            <>
+                <MultiColumnComboBoxComponent dataSource={department} popupWidth={400} popupHeight={200} fields={fields} allowFiltering={true} filterType={'Contains'}>
+                    <ColumnsDirective>
+                        <ColumnDirective field='name' header='Name' width={100}></ColumnDirective>
+                        <ColumnDirective field='description' header='Description' width={140}></ColumnDirective>
+                        <ColumnDirective field='slug' header='Slug' width={80}></ColumnDirective>
+                    </ColumnsDirective>
+                </MultiColumnComboBoxComponent>
+            </>
+        )
+    });
+
+    // CRUD OPERATIONS
     const loadRecord = async (index: number) => {
         // Fetch record data using the ID
         fetch(`${API.service.get}/${IDs[index] || selectedRecords[index]}`)
@@ -122,6 +151,7 @@ const RecordPage = ({
             .then(data => {
                 // Set form values with fetched data
                 form.reset({
+                    id: data.id,
                     name: data.name,
                     location: data.location,
                     type: data.type,
@@ -143,61 +173,77 @@ const RecordPage = ({
                 console.error('Error fetching record:', error);
             });
     }
-
-    // GRID CONFIGURATION
-    const toolbarOptionsDetails = ['Add', 'Delete', 'Update', 'Cancel', 'Search'];
-    const gridRef = useRef<any>(null);
-
-    // CONTROL HANDLER
-    // +++++++ DEPARTMENT +++++++
-    const [department, setDepartment] = useState([]);
-    const fields = { text: 'name', value: 'id' };
-    useEffect(() => {
-        fetch('/api/admin/departments')
-            .then(res => res.json())
-            .then(data => setDepartment(data.result));
-    }, []);
-    const formRef = useRef<HTMLFormElement>(null);
-    const [formPage, setFormPage] = useState([])
-
-    
-    const [formDetailPage, setFormDetailPage] = useState<{ result: any[], count: number }>({
-        result: [],
-        count: 0
-    });
-    
-
-    const userSelection = ((data: any) => {
-        console.log(data);
-        return (
-            <>
-                <MultiColumnComboBoxComponent dataSource={department} popupWidth={400} popupHeight={200} fields={fields} allowFiltering={true} filterType={'Contains'}>
-                    <ColumnsDirective>
-                        <ColumnDirective field='name' header='Name' width={100}></ColumnDirective>
-                        <ColumnDirective field='description' header='Description' width={140}></ColumnDirective>
-                        <ColumnDirective field='slug' header='Slug' width={80}></ColumnDirective>
-                    </ColumnsDirective>
-                </MultiColumnComboBoxComponent>
-            </>
-        )
-    });
-
-    const detailGridColumns = [
-        { field: 'name', headerText: 'Name', width: 50 },
-        {
-            field: 'role',
-            headerText: 'Role',
-            width: 80,
-            editType: 'dropdownedit',
-            editTemplate: userSelection
-        },
-        { field: 'description', headerText: 'Description', width: 50 },
-    ];
-
     const updateRecords = async () => {
         saveChanges(gridRef, setFormDetailPage, API.service.get, API.service.update, API.service.title);
     };
+    const onSubmit = async (data: FormSchemaData) => {
+        console.log('Form submitted:', data);
+        try {
+            const response = await fetch(API.service.post, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
 
+            if (response.ok) {
+                // Refresh grid data
+                const refreshResponse = await fetch(API.service.get);
+                const newData = await refreshResponse.json();
+                setFormPage(newData.result);
+
+                form.reset();
+            }
+        } catch (error) {
+            console.error('Save failed:', error);
+        }
+    };
+    const onSave = async () => {
+        try {
+            // Trigger form submission if form is valid
+            const isValid = await form.trigger();
+            if (!isValid) {
+                console.error('Form validation failed');
+                return;
+            }
+    
+            // Determine if this is an update or create operation
+            const formData = form.getValues(); 
+            const saveData = (formData as any).id === 'new' ? { addedRecords: [formData] } : { changedRecords: [formData] };
+    
+            const response = await fetch(`${API.service.update}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(saveData)
+            });
+    
+            if (!response.ok) {
+                throw new Error('Failed to save data');
+            }
+    
+            // Handle success
+            const result = await response.json();
+            console.log('Save successful:', result);
+    
+            // Update form if needed
+            if (result.data) {
+                form.reset(result.data);
+            }
+    
+            // Save any grid changes if needed
+            if (gridRef.current?.batchChanges?.length > 0) {
+                await updateRecords();
+            }
+    
+        } catch (error) {
+            console.error('Save failed:', error);
+        }
+    };
+
+    // EVENT HANDLER
     const actionBegin = async (args: ActionEventArgs) => {
         await gridAction({
             args,
@@ -206,12 +252,28 @@ const RecordPage = ({
             setData: setFormPage
         });
     };
+    const handlePageChange = async (page: number) => {
+        try {
+            console.log('Page changed:', page);
+            await loadRecord(page - 1);
+            setPage(page);
+        } catch (error) {
+            console.error('Error fetching page:', error);
+        }
+    };
 
 
+    // ++++++++++++++ CONTENT ++++++++++++++
+
+    // FORM CONTENT
     const formRows: FormRowProps<FormSchemaData>[] = [
         {
             columns: { xs: 1, sm: 2, md: 3, lg: 5 }, // Responsive columns
             fields: [
+                {
+                    name: 'id',
+                    hidden: true
+                },
                 {
                     name: 'name',
                     label: 'Name',
@@ -278,47 +340,21 @@ const RecordPage = ({
         }
     ];
 
-    const onSubmit = async (data: FormSchemaData) => {
-        console.log('Form submitted:', data);
-        try {
-            const response = await fetch(API.service.post, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
+    // GRID CONTENT
+    const detailGridColumns = [
+        { field: 'name', headerText: 'Name', width: 50 },
+        {
+            field: 'role',
+            headerText: 'Role',
+            width: 80,
+            editType: 'dropdownedit',
+            editTemplate: userSelection
+        },
+        { field: 'description', headerText: 'Description', width: 50 },
+    ];
 
-            if (response.ok) {
-                // Refresh grid data
-                const refreshResponse = await fetch(API.service.get);
-                const newData = await refreshResponse.json();
-                setFormPage(newData.result);
+    // ++++++++++++ END CONTENT ++++++++++++
 
-                form.reset();
-            }
-        } catch (error) {
-            console.error('Save failed:', error);
-        }
-    };
-
-    // const handleSubmit = (e: React.FormEvent) => {
-    //     console.log('Form submitted:', form.getValues());
-    //     e.preventDefault();
-    //     form.handleSubmit(onSubmit, (errors) => {
-    //         console.log('Form errors:', errors);
-    //     })();
-    // };
-
-    const handlePageChange = async (page: number) => {
-        try {
-            console.log('Page changed:', page);
-            await loadRecord(page - 1);
-            setPage(page);
-        } catch (error) {
-            console.error('Error fetching page:', error);
-        }
-    };
 
     const Content = () => {
         return (
@@ -333,8 +369,8 @@ const RecordPage = ({
                     currentPage={page}
                     selectedRecords={selectedRecords}
                     onPageChange={handlePageChange}
-                // formRef={formRef}
-                // onSave={onSave}
+                    formRef={formRef}
+                    onSave={onSave}
                 />
                 <div className="flex-1 overflow-auto">
                     <TabComponent>
@@ -343,7 +379,7 @@ const RecordPage = ({
                                 content={() => (
                                     <div className="pt-5">
 
-                                        <form id="serviceForm" onSubmit={form.handleSubmit(onSubmit)} ref={formRef}>
+                                        <form id="serviceForm" onSubmit={form.handleSubmit(onSave)} ref={formRef}>
 
                                             <SyncfusionForm
                                                 rows={formRows}
