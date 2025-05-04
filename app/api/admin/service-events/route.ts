@@ -7,7 +7,7 @@ import { validateSession } from '@/app/framework/api/validateSession';
 import { getRequestParams } from '@/app/framework/api/request-params';
 import { validateRequestBody } from '@/app/framework/api/validate-request';
 import { extractModelData } from '@/app/framework/api/extract-model-data';
-import { createRecord, findManyRecords, countRecords } from '@/app/framework/api/prisma-operations';
+import { createRecord, findRecord } from '@/app/framework/api/prisma-operations';
 import { FormSchema } from '@/app/(protected)/admin/service-and-events/forms/forms';
 
 
@@ -17,32 +17,22 @@ export async function GET(request: NextRequest) {
   const { error } = await validateSession();
   if (error) return error;  
 
-  const { field, nestedField, value, operator, search, sortField, sortDirection, skip, limit } = getRequestParams(request);
+  const { field, nestedField, value, operator, search } = getRequestParams(request);
 
   try {
 
-    const whereCondition = buildWhereCondition(field, nestedField, value, operator, search, ['type', 'name', 'description', 'location']);
-
-    // Count total records matching the filter
-    const total = await countRecords('service', whereCondition);
+    const whereCondition = buildWhereCondition(field, nestedField, value, operator, search, ['id']);
 
     // Get paginated records
-    const records = total > 0
-      ? await findManyRecords('service', {
-          skip,
-          take: limit,
+    const record = await findRecord('service', {
           where: whereCondition,
-          orderBy: {
-            [sortField]: sortDirection,
+          include: {
+            serviceDetail: true,
           }
-        })
-      : [];
-
-    // const data = records.map((record: any) => ({...record}));
+        });
 
     return NextResponse.json({
-      result: records,
-      count: total
+      result: record
     });
 
   } catch (error) {

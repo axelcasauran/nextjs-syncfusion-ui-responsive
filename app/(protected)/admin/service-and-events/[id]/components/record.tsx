@@ -162,10 +162,11 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 });
 
                 // Set detail records if any
-                if (data.details) {
+                setFormDetailPage({result:[], count: 0});
+                if (data.serviceDetail && data.serviceDetail.length > 0) {
                     setFormDetailPage({
-                        result: data.result || [], // The array of records
-                        count: data.count || data.result?.length // Total count of records
+                        result: data.serviceDetail || [], // The array of records
+                        count: data.serviceDetail?.length // Total count of records
                     });
                 }
             })
@@ -342,7 +343,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // GRID CONTENT
     const detailGridColumns = [
-        { field: 'name', headerText: 'Name', width: 50 },
+        { field: 'user.firstName', headerText: 'Name', width: 50 },
         {
             field: 'role',
             headerText: 'Role',
@@ -351,6 +352,10 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             editTemplate: userSelection
         },
         { field: 'description', headerText: 'Description', width: 50 },
+        { field: 'notes', headerText: 'Notes', width: 50 },
+        { field: 'minutes', headerText: 'Minutes', width: 25, type: 'number' },
+        { field: 'isAccepted', headerText: 'Accepted', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
+        { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true},
     ];
 
     // ++++++++++++ END CONTENT ++++++++++++

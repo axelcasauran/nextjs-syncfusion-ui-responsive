@@ -3,43 +3,43 @@ import { getServerSession } from 'next-auth/next';
 import { getClientIP } from '@/lib/api';
 import { prisma } from '@/lib/prisma';
 import { systemLog } from '@/services/system-log';
-import {
-  FormSchema,
-} from '@/app/(protected)/admin/syncfusion/forms/forms';
+import { FormSchema } from '@/app/(protected)/admin/syncfusion/forms/forms';
 import authOptions from '@/app/api/auth/[...nextauth]/auth-options';
+import { validateSession } from '@/app/framework/api/validateSession';
+import { findRecord } from '@/app/framework/api/prisma-operations';
 
 // GET: Fetch a specific departmentby ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  try {
-    const session = await getServerSession(authOptions);
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { error } = await validateSession();
+  if (error) return error;
 
-    if (!session) {
-      return NextResponse.json(
-        { message: 'Unauthorized request' },
-        { status: 401 }, // Unauthorized
-      );
-    }
+  try {
 
     const { id } = await params;
-
-    const record= await prisma.service.findUnique({
+    const record = await findRecord('service', {
       where: { id },
+      include: {
+        serviceDetail: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              }
+            }
+          }
+        }
+      }
     });
 
-    if (!record) {
-      return NextResponse.json(
-        { message: 'Record not found. Someone might have deleted it already.' },
-        { status: 404 },
-      );
-    }
-
     return NextResponse.json(record);
-  } catch {
+
+  } catch (error) {
     return NextResponse.json(
-      { message: 'Oops! Something went wrong. Please try again in a moment.' },
+      {
+        message: (error as Error).message || 'Oops! Something didn’t go as planned. Please try again in a moment.',
+      },
       { status: 500 },
     );
   }
@@ -69,7 +69,7 @@ export async function PUT(
     }
 
     // Check if record exists
-    const existingDepartment= await prisma.service.findUnique({
+    const existingDepartment = await prisma.service.findUnique({
       where: { id },
     });
     if (!existingDepartment) {
@@ -88,7 +88,7 @@ export async function PUT(
     // const { name, slug, description }: FormSchemaType = parsedData.data;
 
     // Update the department
-    const updatedDepartment= await prisma.service.update({
+    const updatedDepartment = await prisma.service.update({
       where: { id },
       data: parsedData
     });
@@ -135,7 +135,7 @@ export async function DELETE(
     }
 
     // Check if the department exists
-    const existingDepartment= await prisma.department.findUnique({
+    const existingDepartment = await prisma.department.findUnique({
       where: { id },
     });
 

@@ -281,7 +281,7 @@ model Service {
 
 model ServiceDetail {
   id              String               @id @default(uuid())
-  serviceId       String?
+  serviceId       String
   userId          String               
   role            String               
   description     String?
@@ -290,6 +290,6 @@ model ServiceDetail {
   isRequired      Boolean              @default(false)
   minutes         Int?                 @default(0)
   startDate       DateTime?            @default(now())
-  service         Service?             @relation(fields: [serviceId], references: [id])
-  user            User?                @relation(fields: [userId], references: [id])
+  service         Service              @relation(fields: [serviceId], references: [id])
+  user            User                 @relation(fields: [userId], references: [id])
 }

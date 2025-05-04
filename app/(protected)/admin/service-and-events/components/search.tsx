@@ -14,7 +14,7 @@ const SearchPage = () => {
   const [formPage, setFormPage] = useState<{ result: any[], count: number }>({result: [], count: 0 });
 
   useEffect(() => {
-    fetch(API.service.get)
+    fetch(API.service.list)
       .then(res => res.json())
       .then(data => {
         setFormPage({
@@ -34,7 +34,7 @@ const SearchPage = () => {
 
   const handlePageChange = async (page: number, pageSize: number) => {
     try {
-      const response = await fetch(`${API.service.get}?page=${page}&pageSize=${pageSize}`);
+      const response = await fetch(`${API.service.list}?page=${page}&pageSize=${pageSize}`);
       const data = await response.json();
 
       setFormPage({
@@ -48,7 +48,7 @@ const SearchPage = () => {
 
   const handleSearch = async (searchText: string) => {
     try {
-      const response = await fetch(`${API.service.get}?search=${encodeURIComponent(searchText)}`);
+      const response = await fetch(`${API.service.list}?search=${encodeURIComponent(searchText)}`);
       const data = await response.json();
 
       setFormPage({
