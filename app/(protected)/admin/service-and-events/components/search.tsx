@@ -14,6 +14,7 @@ const SearchPage = () => {
   const [formPage, setFormPage] = useState<{ result: any[], count: number }>({result: [], count: 0 });
 
   useEffect(() => {
+    console.log('useEffect called');
     fetch(API.service.list)
       .then(res => res.json())
       .then(data => {

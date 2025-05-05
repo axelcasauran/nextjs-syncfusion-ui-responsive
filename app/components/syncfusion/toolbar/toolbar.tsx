@@ -94,14 +94,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                             <div className="block md:hidden">
                                 <ButtonComponent
                                     iconCss="e-icons e-save"
-                                    onClick={handleSave}
+                                    onClick={onSave}
                                     cssClass="e-success"
                                 />
                             </div>
                             <div className="hidden md:block">
                                 <ButtonComponent
                                     iconCss="e-icons e-save"
-                                    onClick={handleSave}
+                                    onClick={onSave}
                                     content="Save"
                                     cssClass="e-success"
                                 />

@@ -5,24 +5,35 @@ import { getClientIP } from '@/lib/api';
 import { batchOperations } from '@/app/framework/api/batch-operations';
 
 const _entity = 'Service';
-const _model = 'service';
+const _master = 'service';
+const _detail = 'serviceDetail';
 
 export async function POST(request: NextRequest) {
   try {
     const { error, session } = await validateSession();
-    if (error) return error;  
+    if (error) return error;
 
     const clientIp = getClientIP(request);
     const body = await request.json();
 
     const result = await batchOperations({
-      model: _model,
+      model: _master,
       ...body,
       userId: session.user.id,
       clientIp,
       entityType: _entity
     });
-  
+
+    if (body.details) {
+      await batchOperations({
+        model: _detail,
+        ...body.details,
+        userId: session.user.id,
+        clientIp,
+        entityType: _entity
+      });
+    }
+
     return NextResponse.json(result);
 
   } catch (error: any) {

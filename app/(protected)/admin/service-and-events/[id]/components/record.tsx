@@ -145,8 +145,12 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // CRUD OPERATIONS
     const loadRecord = async (index: number) => {
+        // Fetch record data using the ID        
+        await fetchRecord(IDs[index] || selectedRecords[index]);
+    }
+    const fetchRecord = async (index: string) => {
         // Fetch record data using the ID
-        fetch(`${API.service.get}/${IDs[index] || selectedRecords[index]}`)
+        fetch(`${API.service.get}/${index}`)
             .then(res => res.json())
             .then(data => {
                 // Set form values with fetched data
@@ -162,7 +166,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 });
 
                 // Set detail records if any
-                setFormDetailPage({result:[], count: 0});
+                setFormDetailPage({ result: [], count: 0 });
                 if (data.serviceDetail && data.serviceDetail.length > 0) {
                     setFormDetailPage({
                         result: data.serviceDetail || [], // The array of records
@@ -202,17 +206,26 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
     };
     const onSave = async () => {
         try {
+            // Store grid changes before validation
+            const gridChanges = gridRef.current?.getBatchChanges() || [];
+
             // Trigger form submission if form is valid
             const isValid = await form.trigger();
             if (!isValid) {
                 console.error('Form validation failed');
                 return;
             }
-    
-            // Determine if this is an update or create operation
-            const formData = form.getValues(); 
-            const saveData = (formData as any).id === 'new' ? { addedRecords: [formData] } : { changedRecords: [formData] };
-    
+
+            /// Get form data and prepare save payload
+            const formData = form.getValues();
+            const saveData = {
+                ...(formData.id === 'new'
+                    ? { addedRecords: [formData] }
+                    : { changedRecords: [formData] }
+                ),
+                details: gridChanges || []
+            };
+
             const response = await fetch(`${API.service.update}`, {
                 method: 'POST',
                 headers: {
@@ -220,25 +233,13 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 },
                 body: JSON.stringify(saveData)
             });
-    
+
             if (!response.ok) {
                 throw new Error('Failed to save data');
             }
-    
-            // Handle success
-            const result = await response.json();
-            console.log('Save successful:', result);
-    
-            // Update form if needed
-            if (result.data) {
-                form.reset(result.data);
-            }
-    
-            // Save any grid changes if needed
-            if (gridRef.current?.batchChanges?.length > 0) {
-                await updateRecords();
-            }
-    
+
+            await fetchRecord(formData.id?.toString() || 'new');
+
         } catch (error) {
             console.error('Save failed:', error);
         }
@@ -255,7 +256,6 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
     };
     const handlePageChange = async (page: number) => {
         try {
-            console.log('Page changed:', page);
             await loadRecord(page - 1);
             setPage(page);
         } catch (error) {
@@ -343,6 +343,9 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // GRID CONTENT
     const detailGridColumns = [
+        { field: 'id', isPrimaryKey: true, visible: false },
+        { field: 'serviceId', visible: false },
+
         { field: 'user.firstName', headerText: 'Name', width: 50 },
         {
             field: 'role',
@@ -355,7 +358,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         { field: 'notes', headerText: 'Notes', width: 50 },
         { field: 'minutes', headerText: 'Minutes', width: 25, type: 'number' },
         { field: 'isAccepted', headerText: 'Accepted', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
-        { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true},
+        { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
     ];
 
     // ++++++++++++ END CONTENT ++++++++++++
@@ -384,7 +387,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                 content={() => (
                                     <div className="pt-5">
 
-                                        <form id="serviceForm" onSubmit={form.handleSubmit(onSave)} ref={formRef}>
+                                        <form id="serviceForm" ref={formRef}>
 
                                             <SyncfusionForm
                                                 rows={formRows}
