@@ -111,7 +111,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
     }, [id, form]);
 
     // GRID CONFIGURATION
-    const toolbarOptionsDetails = ['Add', 'Delete', 'Update', 'Cancel', 'Search'];
+    const toolbarOptionsDetails = ['Add', 'Delete', 'Cancel', 'Search'];
     const gridRef = useRef<any>(null);
     const [formDetailPage, setFormDetailPage] = useState<{ result: any[], count: number }>({
         result: [],
@@ -343,6 +343,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // GRID CONTENT
     const detailGridColumns = [
+        { type: 'checkbox', width: 10, isPrimaryKey: true, allowResizing: false, textAlign: 'Center' },
         { field: 'id', isPrimaryKey: true, visible: false },
         { field: 'serviceId', visible: false },
 
@@ -354,9 +355,9 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             editType: 'dropdownedit',
             editTemplate: userSelection
         },
-        { field: 'description', headerText: 'Description', width: 50 },
-        { field: 'notes', headerText: 'Notes', width: 50 },
-        { field: 'minutes', headerText: 'Minutes', width: 25, type: 'number' },
+        { field: 'description', headerText: 'Description', width: 50, hideAtMedia: true },
+        { field: 'notes', headerText: 'Notes', width: 50, hideAtMedia: true },
+        { field: 'minutes', headerText: 'Minutes', width: 25, type: 'number', hideAtMedia: true },
         { field: 'isAccepted', headerText: 'Accepted', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
         { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
     ];

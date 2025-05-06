@@ -30,7 +30,7 @@ export const SyncfusionGrid = ({
   allowFiltering = true,
   allowPaging = true,
   allowResizing = true,
-  // toolbarItems = ['Search'],
+  toolbarItems = [],
   onToolbarClick,
   onRowSelected,
   onBatchSave,
@@ -277,7 +277,7 @@ export const SyncfusionGrid = ({
         selectionSettings={selectionSettings}
         allowSelection={allowSelection}
         height={height}
-        // toolbar={toolbarItems}
+        toolbar={allowEdit ? toolbarItems : undefined}
         editSettings={allowEdit ? editSettings : undefined}
         toolbarClick={onToolbarClick}
         recordDoubleClick={onRowSelected}
