@@ -108,10 +108,10 @@ export async function POST(req: NextRequest) {
           'Registration successful. Check your email to verify your account.',
       },
       { status: 200 },
-    );
-  } catch {
+    ); 
+  } catch (error) {
     return NextResponse.json(
-      { message: 'Registration failed. Please try again later.' },
+      { message: (error as Error).message || 'Registration failed. Please try again later.' },
       { status: 500 },
     );
   }
