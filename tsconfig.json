@@ -20,7 +20,28 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@app/*": ["./src/app/*"],
+      "@api/*": ["./src/app/api/*"],
+      "@components/*": ["./src/common/components/*"],
+      "@hooks/*": ["./src/common/hooks/*"],
+      "@lib/*": ["./src/common/lib/*"],
+      "@providers/*": ["./src/common/providers/*"],
+      "@i18n/*": ["./src/common/i18n/*"],
+      "@types/*": ["./src/common/types/*"],
+      "@models/*": ["./src/models/*"],
+      "@utils/*": ["./src/common/utils/*"],
+      "@framework/*": ["./src/framework/*"],
+      "@modules/*": ["./src/business-layer/*"],
+      "@church-management/*": ["./src/business-layer/church-management/*"],
+      "@user-management/*": ["./src/business-layer/user-management/*"],      
+      "@church-management-app/*": ["./src/app/(protected)/(church-management)/*"],
+      "@user-management-app/*": ["./src/app/(protected)/(user-management)/*"],    
+      "@church-management-api/*": ["./src/app/api/church-management/*"],
+      "@user-management-api/*": ["./src/app/api/user-management/*"],      
+      "@reui/*": ["./src/common/reui/components/*"],
+      "@syncfusion/*": ["./src/common/components/syncfusion/*"],
+      "@common/*": ["./src/common/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
