@@ -2,7 +2,7 @@
 
 import { ReactNode } from 'react';
 import useBodyClasses from '@hooks/use-body-classes';
-import { SearchProvider } from '../../search';
+// import { SearchProvider } from '../../search';
 import { Wrapper } from './common';
 
 interface IDefaultLayoutProps {
@@ -13,9 +13,9 @@ const DefaultLayout = ({ children }: IDefaultLayoutProps) => {
   useBodyClasses('bg-page lg:overflow-hidden!');
 
   return (
-    <SearchProvider>
+    // <SearchProvider>
       <Wrapper>{children}</Wrapper>
-    </SearchProvider>
+    // </SearchProvider>
   );
 };
 

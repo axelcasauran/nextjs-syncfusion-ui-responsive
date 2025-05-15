@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const FormSchema = z.object({
-  id: z.string().optional(), // Add the 'id' field
+  id: z.string().optional().nullable(), // Add the 'id' field
   name: z.string().min(1, "Name is required"),
   location: z.string().min(1, "Location is required"),
   type: z.string({ invalid_type_error: "Please select a type"}).min(1, "Type is required"),

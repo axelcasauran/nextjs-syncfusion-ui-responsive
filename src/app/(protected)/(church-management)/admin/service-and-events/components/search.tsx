@@ -4,14 +4,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { API } from '@framework/helper/api';
-import { useRouter  } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { SyncfusionGrid } from '@syncfusion/grid/grid';
 
 const SearchPage = () => {
 
   const router = useRouter();
   const gridRef = useRef<any>(null);
-  const [formPage, setFormPage] = useState<{ result: any[], count: number }>({result: [], count: 0 });
+  const [formPage, setFormPage] = useState<{ result: any[], count: number }>({ result: [], count: 0 });
 
   useEffect(() => {
     console.log('useEffect called');
@@ -28,8 +28,10 @@ const SearchPage = () => {
   const rowSelected = (args: any) => {
     const selectedRecords = gridRef.current.getSelectedRecords();
     if (selectedRecords && selectedRecords.length > 0) {
-      const selectedIds = selectedRecords.map((record: any) => record.id).join(',');
-      router.push(`/admin/service-and-events/${selectedIds}`);
+      const ids = selectedRecords.map((record: any) => record.id);
+      const encodedIds = btoa(JSON.stringify(ids));
+      const urlSafeIds = encodeURIComponent(encodedIds);
+      router.push(`/admin/service-and-events/${urlSafeIds}`);
     }
   }
 

@@ -236,7 +236,7 @@ export const SyncfusionGrid = ({
       <GridComponent
         emptyRecordTemplate={() => { return (<span>Click add button to insert record</span>) }}
         ref={gridRef}
-        dataSource={dataSource.result}
+        dataSource={dataSource} //dataSource.result it fixed the flicking issue
         allowSorting={allowSorting}
         allowMultiSorting={allowMultiSorting}
         allowFiltering={allowFiltering}

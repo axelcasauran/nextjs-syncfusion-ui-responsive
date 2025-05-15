@@ -13,6 +13,7 @@ interface BatchOperationOptions {
     userId: string;
     clientIp: string;
     entityType: string;
+    type?: 'master' | 'detail';
 }
 
 export async function batchOperations({
@@ -22,82 +23,80 @@ export async function batchOperations({
     deletedRecords,
     userId,
     clientIp,
-    entityType
+    entityType,
+    type
 }: BatchOperationOptions) {
     if (!prismaModels[model]) {
         throw new Error(`Model ${model} not found`);
     }
 
-    // try {
+    let _newIds = '';
 
-        let _newIds = '';
-
-        // +++++++++++++++++++++++
-        // Batch Update
-        await prisma.$transaction(async (tx) => {
-            // Handle added records
-            if (addedRecords?.length) {
-                const newRecords = await (tx[model as keyof typeof tx] as any).createManyAndReturn({
-                    data: addedRecords
-                });
-
-                _newIds = newRecords.map((record: any) => record.id).join(', ');
-            }
-
-            // Handle updated records
-            if (changedRecords?.length) {
-                await Promise.all(
-                    changedRecords.map(item =>
-                        (tx[model as keyof typeof tx] as any).update({
-                            where: { id: item.id },
-                            data: filterSchemaFields(item) 
-                        })
-                    )
-                );
-            }
-
-            // Handle deleted records
-            if (deletedRecords?.length) {
-                await (tx[model as keyof typeof tx] as any).deleteMany({
-                    where: {
-                        id: {
-                            in: deletedRecords.map(item => item.id)
-                        }
-                    }
-                });
-            }
-        }, {
-            timeout: 10000
-        });
-
-        // +++++++++++++++++++++++
-        // Audit Logs
+    // +++++++++++++++++++++++
+    // Batch Update
+    await prisma.$transaction(async (tx) => {
         // Handle added records
         if (addedRecords?.length) {
-            // Audit logs
-            await systemLog({ event: 'create', userId: userId, entityId: _newIds, entityType: entityType, description: entityType + ' created by user', ipAddress: clientIp });
+            const newRecords = await (tx[model as keyof typeof tx] as any).createManyAndReturn({
+                data: addedRecords
+            });
+
+            _newIds = newRecords.map((record: any) => record.id).join(', ');
         }
+
         // Handle updated records
         if (changedRecords?.length) {
-            // Audit logs
-            const updatedIds = changedRecords.map((record: any) => record.id).join(', ');
-            await systemLog({ event: 'update', userId: userId, entityId: updatedIds, entityType: entityType, description: entityType + ' updated by user', ipAddress: clientIp });
+            await Promise.all(
+                changedRecords.map(item =>
+                    (tx[model as keyof typeof tx] as any).update({
+                        where: { id: item.id },
+                        data: filterSchemaFields(item)
+                    })
+                )
+            );
         }
+
         // Handle deleted records
         if (deletedRecords?.length) {
-            // Audit logs
-            const deletedIds = deletedRecords.map((record: any) => record.id).join(', ');
-            await systemLog({ event: 'delete', userId: userId, entityId: deletedIds, entityType: entityType, description: entityType + ' deleted by user', ipAddress: clientIp });
+            await (tx[model as keyof typeof tx] as any).deleteMany({
+                where: {
+                    id: {
+                        in: deletedRecords.map(item => item.id)
+                    }
+                }
+            });
         }
+    }, {
+        timeout: 10000
+    });
 
+    // +++++++++++++++++++++++
+    // Audit Logs
+    // Handle added records
+    if (addedRecords?.length) {
+        // Audit logs
+        await systemLog({ event: 'create', userId: userId, entityId: _newIds, entityType: entityType, description: entityType + ' created by user', ipAddress: clientIp });
+    }
+    // Handle updated records
+    if (changedRecords?.length) {
+        // Audit logs
+        const updatedIds = changedRecords.map((record: any) => record.id).join(', ');
+        await systemLog({ event: 'update', userId: userId, entityId: updatedIds, entityType: entityType, description: entityType + ' updated by user', ipAddress: clientIp });
+    }
+    // Handle deleted records
+    if (deletedRecords?.length) {
+        // Audit logs
+        const deletedIds = deletedRecords.map((record: any) => record.id).join(', ');
+        await systemLog({ event: 'delete', userId: userId, entityId: deletedIds, entityType: entityType, description: entityType + ' deleted by user', ipAddress: clientIp });
+    }
+
+    if (type === 'master') {
+        return { ids: _newIds };
+    }
+    else {
         return { success: true };
+    }
 
-    // } catch (error: any) {
-    //     return NextResponse.json(
-    //         { error: error.message || 'Something went wrong' },
-    //         { status: 500 }
-    //     );
-    // }
 }
 
 // Add this helper function at the top of the file

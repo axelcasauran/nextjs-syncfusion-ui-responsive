@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateSession } from '@framework/api/validateSession';
 import { getClientIP } from '@lib/api';
 import { batchOperations } from '@framework/api/batch-operations';
+import { findRecord } from '@framework/api/prisma-operations';
 
 const _entity = 'Service';
 const _master = 'service';
@@ -21,7 +22,8 @@ export async function POST(request: NextRequest) {
       ...body,
       userId: session.user.id,
       clientIp,
-      entityType: _entity
+      entityType: _entity,
+      type: 'master'
     });
 
     if (body.details) {
@@ -30,11 +32,23 @@ export async function POST(request: NextRequest) {
         ...body.details,
         userId: session.user.id,
         clientIp,
-        entityType: _entity
+        entityType: _entity,
+        type: 'detail'
       });
     }
 
-    return NextResponse.json(result);
+    const record = await findRecord(_master, {
+      where: {
+        id: result.ids,
+      },
+      include: {
+        serviceDetail: true,
+      }
+    });
+
+    return NextResponse.json({
+      result: record
+    });
 
   } catch (error: any) {
     return NextResponse.json(

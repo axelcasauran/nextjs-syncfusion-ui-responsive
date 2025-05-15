@@ -18,10 +18,12 @@ import { ActionEventArgs } from '@syncfusion/ej2-react-grids';
 import { API } from '@framework/helper/api';
 import { FormSchema, FormSchemaData } from '../../forms/forms';
 import { Toolbar } from '@syncfusion/toolbar/toolbar';
+import { useRouter } from 'next/navigation';
 
 const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // DECLARE VARIABLES
+    const router = useRouter();
     let IDs: string[] = [];
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const [page, setPage] = useState(1);
@@ -87,7 +89,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
     const form = useForm<FormSchemaData>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
-            id: id || 'new',
+            id: (id === 'new') ? null : id,
             name: "",
             location: "",
             type: "",
@@ -98,17 +100,22 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         },
     });
     const formRef = useRef<HTMLFormElement>(null!);
-    const [formPage, setFormPage] = useState([])
+    const [formPage, setFormPage] = useState([]);
     useEffect(() => {
         if (id && id !== 'new') {
-            const encoded = id;
-            const decoded = decodeURIComponent(encoded);
-            const _ID = decoded.split(",");
-            IDs = _ID;
-            setSelectedRecords(_ID);
-            loadRecord(0);
+            try {
+                const urlDecoded = decodeURIComponent(id);
+                const base64Decoded = atob(urlDecoded);
+                const ids = JSON.parse(base64Decoded);
+
+                IDs = ids;
+                setSelectedRecords(ids);
+                loadRecord(0);
+            } catch (error) {
+                console.error('Error decoding IDs:', error);
+            }
         }
-    }, [id, form]);
+    }, [id]);
 
     // GRID CONFIGURATION
     const toolbarOptionsDetails = ['Add', 'Delete', 'Cancel', 'Search'];
@@ -123,7 +130,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
     const [department, setDepartment] = useState([]);
     const fields = { text: 'name', value: 'id' };
     useEffect(() => {
-        fetch('/api/admin/departments')
+        fetch('/api/church-management/admin/departments')
             .then(res => res.json())
             .then(data => setDepartment(data.result));
     }, []);
@@ -148,61 +155,46 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         // Fetch record data using the ID        
         await fetchRecord(IDs[index] || selectedRecords[index]);
     }
-    const fetchRecord = async (index: string) => {
+    const fetchRecord = async (id: string) => {
         // Fetch record data using the ID
-        fetch(`${API.service.get}/${index}`)
+        fetch(`${API.service.get}/${id}`)
             .then(res => res.json())
             .then(data => {
                 // Set form values with fetched data
-                form.reset({
-                    id: data.id,
-                    name: data.name,
-                    location: data.location,
-                    type: data.type,
-                    startDate: new Date(data.startDate),
-                    endDate: data.endDate ? new Date(data.endDate) : null,
-                    description: data.description,
-                    isActive: data.isActive
-                });
-
-                // Set detail records if any
-                setFormDetailPage({ result: [], count: 0 });
-                if (data.serviceDetail && data.serviceDetail.length > 0) {
-                    setFormDetailPage({
-                        result: data.serviceDetail || [], // The array of records
-                        count: data.serviceDetail?.length // Total count of records
-                    });
-                }
+                bindData(data);
             })
             .catch(error => {
                 console.error('Error fetching record:', error);
             });
     }
+    const bindData = async (data: any) => {
+        form.reset({
+            id: data.id,
+            name: data.name,
+            location: data.location,
+            type: data.type,
+            startDate: new Date(data.startDate),
+            endDate: data.endDate ? new Date(data.endDate) : null,
+            description: data.description,
+            isActive: data.isActive
+        });
+
+        // Set detail records if any
+        if (data.serviceDetail && data.serviceDetail.length > 0) {
+            setFormDetailPage({
+                result: data.serviceDetail || [], // The array of records
+                count: data.serviceDetail?.length // Total count of records
+            });
+        }
+        else {
+            setFormDetailPage({
+                result: [],
+                count: 0
+            });
+        }
+    };
     const updateRecords = async () => {
         saveChanges(gridRef, setFormDetailPage, API.service.get, API.service.update, API.service.title);
-    };
-    const onSubmit = async (data: FormSchemaData) => {
-        console.log('Form submitted:', data);
-        try {
-            const response = await fetch(API.service.post, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data)
-            });
-
-            if (response.ok) {
-                // Refresh grid data
-                const refreshResponse = await fetch(API.service.get);
-                const newData = await refreshResponse.json();
-                setFormPage(newData.result);
-
-                form.reset();
-            }
-        } catch (error) {
-            console.error('Save failed:', error);
-        }
     };
     const onSave = async () => {
         try {
@@ -218,8 +210,9 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
             /// Get form data and prepare save payload
             const formData = form.getValues();
+            if (formData.id == null) delete formData.id;
             const saveData = {
-                ...(formData.id === 'new'
+                ...(formData.id === undefined
                     ? { addedRecords: [formData] }
                     : { changedRecords: [formData] }
                 ),
@@ -238,7 +231,23 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 throw new Error('Failed to save data');
             }
 
-            await fetchRecord(formData.id?.toString() || 'new');
+            const responseData = await response.json();
+            if (id === 'new' && responseData.result?.id) {
+                const encodedIds = btoa(JSON.stringify(responseData.result.id));
+                const urlSafeIds = encodeURIComponent(encodedIds);
+
+                window.history.replaceState(null, '', urlSafeIds);
+                bindData(responseData.result);
+            }
+            else {
+                if(gridChanges.addedRecords?.length) {
+                    await fetchRecord(formData.id?.toString() || '');
+                }
+                else if (gridChanges.changedRecords?.length) {
+                }
+                else if (gridChanges.deletedRecords?.length) {
+                }                
+            }
 
         } catch (error) {
             console.error('Save failed:', error);
