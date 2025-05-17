@@ -8,7 +8,6 @@ import { DefaultLayout } from '@components/layouts/default';
 
 import { initializeSyncfusion } from '@common/utils/syncfusion-license';
 if (typeof window !== 'undefined') {
-  console.log('Syncfusion license key:', process.env.NEXT_PUBLIC_SYNCFUSION_LICENSE_KEY);
   initializeSyncfusion();
 }
 

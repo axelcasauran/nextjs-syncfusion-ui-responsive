@@ -42,7 +42,17 @@ export async function POST(request: NextRequest) {
         id: result.ids,
       },
       include: {
-        serviceDetail: true,
+        serviceDetail: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              }
+            }
+          }
+        }
       }
     });
 

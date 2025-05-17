@@ -128,7 +128,7 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
               <AppBarComponent>
                 <ButtonComponent cssClass="e-inherit" iconCss="e-icons e-menu" onClick={toggleSidebar}></ButtonComponent>
                 <div className="e-folder">
-                  <div className="e-folder-name">UI/UX Prototype 1.0.1</div>
+                  <div className="e-folder-name">UI/UX Prototype 1.0.3</div>
                 </div>
               </AppBarComponent>
             </div>

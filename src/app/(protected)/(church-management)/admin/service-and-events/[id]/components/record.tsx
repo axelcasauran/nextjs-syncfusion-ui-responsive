@@ -127,27 +127,67 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // CONTROL HANDLERS
     // DEPARTMENT COMBOBOX
-    const [department, setDepartment] = useState([]);
-    const fields = { text: 'name', value: 'id' };
+    const [user, setUser] = useState([]);
+    const fields = { text: 'fullName', value: 'id' };
     useEffect(() => {
-        fetch('/api/church-management/admin/departments')
+        fetch('/api/church-management/admin/volunteers')
             .then(res => res.json())
-            .then(data => setDepartment(data.result));
+            .then(data => setUser(data.result));
     }, []);
     // USER COMBOBOX
     const userSelection = ((data: any) => {
-        console.log(data);
         return (
-            <>
-                <MultiColumnComboBoxComponent dataSource={department} popupWidth={400} popupHeight={200} fields={fields} allowFiltering={true} filterType={'Contains'}>
-                    <ColumnsDirective>
-                        <ColumnDirective field='name' header='Name' width={100}></ColumnDirective>
-                        <ColumnDirective field='description' header='Description' width={140}></ColumnDirective>
-                        <ColumnDirective field='slug' header='Slug' width={80}></ColumnDirective>
-                    </ColumnsDirective>
-                </MultiColumnComboBoxComponent>
-            </>
+            <MultiColumnComboBoxComponent dataSource={user} value={data.userId} popupWidth={400} popupHeight={200} fields={fields} allowFiltering={true} filterType={'Contains'}
+                change={(e: any) => {
+                    if (e.itemData && gridRef.current) {
+                        try {
+                            setTimeout(() => {
+
+                                const row = gridRef.current.getRowByIndex(gridRef.current.getRowIndexByPrimaryKey(data.id));
+                                if (!row) {
+                                    // console.error('Row not found');
+                                    return;
+                                }
+
+                                data.user.firstName = e.item.firstName;
+                                data.user.lastName = e.item.lastName;
+                                data.user.id = e.itemData.value;
+
+                                const updatedData = {
+                                    userId: e.itemData.value,
+                                    user: {
+                                        firstName: e.item.firstName,
+                                        lastName: e.item.lastName,
+                                        id: e.itemData.value
+                                    }
+                                };
+
+                                console.log('updatedData', updatedData);
+
+                                // // Update directly using updateCell
+                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'user.firstName', e.item.firstName);
+                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'user.lastName', e.item.lastName);
+                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'user.id', e.item.id);
+                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'userId', updatedData.userId);
+                            }, 0);
+                        } catch (error) {
+                            console.error('Error updating grid row:', error);
+                        }
+                    }
+                }}>
+                <ColumnsDirective>
+                    <ColumnDirective field='firstName' header='First Name' width={120}></ColumnDirective>
+                    <ColumnDirective field='lastName' header='Last Name' width={140}></ColumnDirective>
+                </ColumnsDirective>
+            </MultiColumnComboBoxComponent>
         )
+    });
+    const firstNameLastName = ((data: any) => {
+        console.log('data', data);
+        if (data.user == null) return <span></span>;
+        return (
+            <span>{data.user.firstName} {data.user.lastName}</span>
+        );
     });
 
     // CRUD OPERATIONS
@@ -240,13 +280,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 bindData(responseData.result);
             }
             else {
-                if(gridChanges.addedRecords?.length) {
-                    await fetchRecord(formData.id?.toString() || '');
-                }
-                else if (gridChanges.changedRecords?.length) {
-                }
-                else if (gridChanges.deletedRecords?.length) {
-                }                
+                bindData(responseData.result);
             }
 
         } catch (error) {
@@ -352,14 +386,14 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // GRID CONTENT
     const detailGridColumns = [
-        { type: 'checkbox', width: 10, isPrimaryKey: true, allowResizing: false, textAlign: 'Center' },
+        { type: 'checkbox', width: 10, allowResizing: false, textAlign: 'Center' },
         { field: 'id', isPrimaryKey: true, visible: false },
         { field: 'serviceId', visible: false },
-
-        { field: 'user.firstName', headerText: 'Name', width: 50 },
+        { field: 'userId', visible: false },
         {
-            field: 'role',
-            headerText: 'Role',
+            field: 'user',
+            template: firstNameLastName,
+            headerText: 'Name',
             width: 80,
             editType: 'dropdownedit',
             editTemplate: userSelection
@@ -389,6 +423,9 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                     onPageChange={handlePageChange}
                     formRef={formRef}
                     onSave={onSave}
+                    onAddNew={() => {
+                        router.push('/admin/service-and-events/new');
+                    }}
                 />
                 <div className="flex-1 overflow-auto">
                     <TabComponent>

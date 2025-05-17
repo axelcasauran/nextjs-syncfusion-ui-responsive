@@ -7,47 +7,42 @@ import { getRequestParams } from '@framework/api/request-params';
 
 export async function GET(request: NextRequest) {
   const { error } = await validateSession();
-  if (error) return error;  
+  if (error) return error;
 
-  const { field, nestedField, value, operator, search, orderBy, skip, limit } = getRequestParams(request);
+  const { field, nestedField, value, operator, search, sortField, sortDirection, skip, limit } = getRequestParams(request);
 
   try {
 
-    const whereCondition = buildWhereCondition(field, nestedField, value, operator, search, ['email', 'firstName', 'lastName', 'mobilenumber', 'department.name', 'role.name']);
+    const whereCondition = buildWhereCondition(field, nestedField, value, operator, search, ['firstName', 'lastName', 'middleName', 'email']);
 
     // Count total records matching the filter
-    const total = await prisma.user.count({where: whereCondition});
+    const total = await prisma.user.count({ where: whereCondition });
 
     // Get paginated record
     const records = total > 0
       ? await prisma.user.findMany({
-          skip,
-          take: limit,
-          where: whereCondition,
-          orderBy,
-          select: {
-            id: true,
-            isTrashed: true,
-            avatar: true,
-            firstName: true,
-            lastName: true,
-            department: true,
-            email: true,
-            status: true,
-            createdAt: true,
-            lastSignInAt: true,
-            mobilenumber: true,
-            role: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        })
+        skip,
+        take: limit,
+        where: whereCondition,
+        orderBy: {
+          [sortField]: sortDirection,
+        },
+        select: {
+          id: true,
+          isTrashed: true,
+          avatar: true,
+          firstName: true,
+          lastName: true,
+          department: true,
+          status: true
+        }
+      })
       : [];
 
-    const data = records.map((record) => ({...record}));
+    const data = records.map((record) => ({
+      ...record,
+      fullName: `${record.firstName} ${record.lastName}`.trim()
+    }));
 
     return NextResponse.json({
       result: data,

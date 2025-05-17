@@ -30,7 +30,7 @@ export async function batchOperations({
         throw new Error(`Model ${model} not found`);
     }
 
-    let _newIds = '';
+    let _newIds = null;
 
     // +++++++++++++++++++++++
     // Batch Update
@@ -75,7 +75,7 @@ export async function batchOperations({
     // Handle added records
     if (addedRecords?.length) {
         // Audit logs
-        await systemLog({ event: 'create', userId: userId, entityId: _newIds, entityType: entityType, description: entityType + ' created by user', ipAddress: clientIp });
+        await systemLog({ event: 'create', userId: userId, entityId: _newIds || '', entityType: entityType, description: entityType + ' created by user', ipAddress: clientIp });
     }
     // Handle updated records
     if (changedRecords?.length) {
@@ -91,7 +91,7 @@ export async function batchOperations({
     }
 
     if (type === 'master') {
-        return { ids: _newIds };
+        return { ids: _newIds || ((changedRecords?.[0]?.id) || '') };
     }
     else {
         return { success: true };
