@@ -10,7 +10,7 @@ export const FormSchema = z.object({
   }),
   endDate: z.date().nullable().optional(),
   description: z.string().optional(),
-  isActive: z.boolean().default(false)
+  isActive: z.boolean().default(false).nullable(),
 });
 
 export type FormSchemaData = z.infer<typeof FormSchema>;

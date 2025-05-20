@@ -19,6 +19,7 @@ import { API } from '@framework/helper/api';
 import { FormSchema, FormSchemaData } from '../../forms/forms';
 import { Toolbar } from '@syncfusion/toolbar/toolbar';
 import { useRouter } from 'next/navigation';
+import { ComboBoxComponent } from '@syncfusion/ej2-react-dropdowns';
 
 const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
@@ -87,7 +88,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // FORM CONFIGURATION
     const form = useForm<FormSchemaData>({
-        resolver: zodResolver(FormSchema),
+        resolver: zodResolver(FormSchema) as any,
         defaultValues: {
             id: (id === 'new') ? null : id,
             name: "",
@@ -96,7 +97,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             startDate: new Date(),
             endDate: null,
             description: "",
-            isActive: false,
+            isActive: false as boolean | null,
         },
     });
     const formRef = useRef<HTMLFormElement>(null!);
@@ -142,11 +143,10 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                     if (e.itemData && gridRef.current) {
                         try {
                             setTimeout(() => {
-
                                 const row = gridRef.current.getRowByIndex(gridRef.current.getRowIndexByPrimaryKey(data.id));
+                                let rowIndex = gridRef.current.getRowIndexByPrimaryKey(data.id);
                                 if (!row) {
-                                    // console.error('Row not found');
-                                    return;
+                                    rowIndex = 0;
                                 }
 
                                 data.user.firstName = e.item.firstName;
@@ -162,13 +162,20 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                     }
                                 };
 
-                                console.log('updatedData', updatedData);
-
                                 // // Update directly using updateCell
-                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'user.firstName', e.item.firstName);
-                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'user.lastName', e.item.lastName);
-                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'user.id', e.item.id);
-                                gridRef.current.updateCell(gridRef.current.getRowIndexByPrimaryKey(data.id), 'userId', updatedData.userId);
+                                gridRef.current.updateCell(rowIndex, 'user.firstName', e.item.firstName);
+                                gridRef.current.updateCell(rowIndex, 'user.lastName', e.item.lastName);
+                                gridRef.current.updateCell(rowIndex, 'user.id', e.item.id);
+                                gridRef.current.updateCell(rowIndex, 'userId', updatedData.userId);
+                                gridRef.current.saveCell();
+
+                                formDetailPage.result.forEach((item: any) => {
+                                    if (item.id === data.id) {
+                                        item.user = updatedData.user;
+                                        item.userId = updatedData.userId;
+                                        return;
+                                    }
+                                });
                             }, 0);
                         } catch (error) {
                             console.error('Error updating grid row:', error);
@@ -189,6 +196,95 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             <span>{data.user.firstName} {data.user.lastName}</span>
         );
     });
+    // ROLE COMBOBOX
+    // const roleFields = { text: 'role', value: 'role' };
+    // const roles = [{ "role": 'Preacher' }, { "role": 'Host' }, { "role": 'Tech' }, { "role": 'Registration' }, { "role": 'Door keeper' }, { "role": 'Volunteer' }];
+    // const roleSelection = ((data: any) => {
+    //     console.log('roleSelection data', data);
+    //     return (
+    //         <MultiColumnComboBoxComponent dataSource={roles} value={data.role} popupWidth={400} popupHeight={200} fields={roleFields} allowFiltering={true} filterType={'Contains'}
+    //             change={(e: any) => {
+    //                 if (e.itemData && gridRef.current) {
+    //                     try {
+    //                         setTimeout(() => {
+    //                             const row = gridRef.current.getRowByIndex(gridRef.current.getRowIndexByPrimaryKey(data.id));
+    //                             let rowIndex = gridRef.current.getRowIndexByPrimaryKey(data.id);
+    //                             if (!row) {
+    //                                 rowIndex = 0;
+    //                             }
+    //                             gridRef.current.updateCell(rowIndex, 'role', e.value);
+    //                             // gridRef.current.saveCell();
+    //                             // formDetailPage.result.forEach((item: any) => {
+    //                             //     if (item.id === data.id) {
+    //                             //         item.role = e.itemData.role;
+    //                             //         return;
+    //                             //     }
+    //                             // });
+    //                         }, 0);
+    //                     } catch (error) {
+    //                         console.error('Error updating grid row:', error);
+    //                     }
+    //                 }
+    //             }}
+    //             >
+    //             <ColumnsDirective>
+    //                 <ColumnDirective field='role' header='Role' width={120}></ColumnDirective>
+    //             </ColumnsDirective>
+    //         </MultiColumnComboBoxComponent>
+    //     )
+    // });
+    const roles = [
+        { role: 'Preacher' },
+        { role: 'Host' },
+        { role: 'Tech' },
+        { role: 'Registration' },
+        { role: 'Door keeper' },
+        { role: 'Volunteer' }
+    ];
+    // const roleSelection = ((data: any) => {
+    //     return (
+    //         <ComboBoxComponent
+    //             dataSource={roles}
+    //             value={data.role}
+    //             allowFiltering={true}
+    //             filterType='Contains'
+    //             change={(e: any) => {
+    //                 if (e.value && gridRef.current) {
+    //                     // Defer the update to next tick to avoid DOM manipulation during blur
+    //                     requestAnimationFrame(() => {
+    //                         try {
+    //                             // Get current row data
+    //                             const currentData = gridRef.current.getCurrentViewRecords();
+    //                             const rowData = currentData.find((r: any) => r.id === data.id);
+
+    //                             if (rowData) {
+    //                                 // Update data model first
+    //                                 rowData.role = e.value;
+
+    //                                 // Then update grid cell
+    //                                 const rowIndex = gridRef.current.getRowIndexByPrimaryKey(data.id);
+    //                                 if (rowIndex !== undefined) {
+    //                                     gridRef.current.setCellValue(data.id, 'role', e.value);
+    //                                     formDetailPage.result.forEach((item: any) => {
+    //                                         if (item.id === data.id) {
+    //                                             item.role = e.value;
+    //                                             return;
+    //                                         }
+    //                                     });
+    //                                 }
+    //                             }
+    //                         } catch (error) {
+    //                             console.error('Error updating grid row:', error);
+    //                         }
+    //                     });
+    //                 }
+    //             }}
+    //         />
+    //     );
+    // });
+
+
+
 
     // CRUD OPERATIONS
     const loadRecord = async (index: number) => {
@@ -216,14 +312,21 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             startDate: new Date(data.startDate),
             endDate: data.endDate ? new Date(data.endDate) : null,
             description: data.description,
-            isActive: data.isActive
+            isActive: data.isActive !== undefined ? data.isActive : null
         });
 
-        // Set detail records if any
+        // Update grid data without full reset if data exists
         if (data.serviceDetail && data.serviceDetail.length > 0) {
+            const currentData = formDetailPage.result;
+            const updatedData = data.serviceDetail.map((detail: any) => ({
+                ...detail,
+                // Preserve any local changes to the user data
+                user: currentData.find((d: any) => d.id === detail.id)?.user || detail.user
+            }));
+
             setFormDetailPage({
-                result: data.serviceDetail || [], // The array of records
-                count: data.serviceDetail?.length // Total count of records
+                result: updatedData,
+                count: data.serviceDetail.length
             });
         }
         else {
@@ -251,6 +354,15 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             /// Get form data and prepare save payload
             const formData = form.getValues();
             if (formData.id == null) delete formData.id;
+
+            if (gridChanges.addedRecords.length > 0) {
+                gridChanges.addedRecords.forEach((item: any) => {
+                    delete item.id;
+                    delete item.user;
+                    item.serviceId = formData.id;
+                });
+            }
+
             const saveData = {
                 ...(formData.id === undefined
                     ? { addedRecords: [formData] }
@@ -270,7 +382,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             if (!response.ok) {
                 throw new Error('Failed to save data');
             }
-
+            console.log('save >>>> ', formDetailPage);
             const responseData = await response.json();
             if (id === 'new' && responseData.result?.id) {
                 const encodedIds = btoa(JSON.stringify(responseData.result.id));
@@ -394,9 +506,29 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             field: 'user',
             template: firstNameLastName,
             headerText: 'Name',
-            width: 80,
+            width: 55,
             editType: 'dropdownedit',
             editTemplate: userSelection
+        },
+        {
+            field: 'role',
+            headerText: 'Role',
+            width: 40,
+            editType: 'dropdownedit',
+            // editTemplate: roleSelection            
+            // template: roleSelection
+            edit: {
+                params: {
+                    dataSource: roles,
+                    fields: { text: 'role', value: 'role' },
+                    allowFiltering: true,
+                    filterType: 'Contains'
+                }
+            },
+            template: (args: any) => {
+                if (args == null) return <span></span>;
+                return <div>{args?.role}</div>;
+            }
         },
         { field: 'description', headerText: 'Description', width: 50, hideAtMedia: true },
         { field: 'notes', headerText: 'Notes', width: 50, hideAtMedia: true },
