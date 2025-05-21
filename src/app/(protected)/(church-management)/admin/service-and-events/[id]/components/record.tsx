@@ -19,7 +19,6 @@ import { API } from '@framework/helper/api';
 import { FormSchema, FormSchemaData } from '../../forms/forms';
 import { Toolbar } from '@syncfusion/toolbar/toolbar';
 import { useRouter } from 'next/navigation';
-import { ComboBoxComponent } from '@syncfusion/ej2-react-dropdowns';
 
 const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
@@ -143,12 +142,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                     if (e.itemData && gridRef.current) {
                         try {
                             setTimeout(() => {
-                                const row = gridRef.current.getRowByIndex(gridRef.current.getRowIndexByPrimaryKey(data.id));
-                                let rowIndex = gridRef.current.getRowIndexByPrimaryKey(data.id);
-                                if (!row) {
-                                    rowIndex = 0;
-                                }
-
+                                const rowIndex = gridRef.current.selectedRowIndex;
                                 data.user.firstName = e.item.firstName;
                                 data.user.lastName = e.item.lastName;
                                 data.user.id = e.itemData.value;
@@ -169,13 +163,13 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                 gridRef.current.updateCell(rowIndex, 'userId', updatedData.userId);
                                 gridRef.current.saveCell();
 
-                                formDetailPage.result.forEach((item: any) => {
-                                    if (item.id === data.id) {
-                                        item.user = updatedData.user;
-                                        item.userId = updatedData.userId;
-                                        return;
-                                    }
-                                });
+                                // formDetailPage.result.forEach((item: any) => {
+                                //     if (item.id === data.id) {
+                                //         item.user = updatedData.user;
+                                //         item.userId = updatedData.userId;
+                                //         return;
+                                //     }
+                                // });
                             }, 0);
                         } catch (error) {
                             console.error('Error updating grid row:', error);
@@ -190,8 +184,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         )
     });
     const firstNameLastName = ((data: any) => {
-        console.log('data', data);
-        if (data.user == null) return <span></span>;
+        if (data?.user == null) return <span></span>;
         return (
             <span>{data.user.firstName} {data.user.lastName}</span>
         );
@@ -344,6 +337,58 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             // Store grid changes before validation
             const gridChanges = gridRef.current?.getBatchChanges() || [];
 
+
+            console.log('gridChanges >>> ', gridChanges);
+
+            // gridChanges.changedRecords.forEach((item: any) => {
+            //     formDetailPage.result.forEach((item2: any) => {
+            //         if (item2.id === item.id) {
+            //             item2 = item;
+            //             return;
+            //         }
+            //     });
+            // });
+
+            // gridChanges.deletedRecords.forEach((item: any) => {
+            //     const index = formDetailPage.result.findIndex((item2: any) => item2.id === item.id);
+            //     if (index !== -1) {
+            //         formDetailPage.result.splice(index, 1);
+            //     }
+            // });
+
+            // gridChanges.addedRecords.forEach((item: any) => {
+            //     formDetailPage.result.push(item);
+            // });
+
+            // Create new array instead of modifying existing one
+            const updatedResults = formDetailPage.result.reduce((acc: any[], item: any) => {
+                // Skip deleted records
+                if (gridChanges.deletedRecords.some((deleted: any) => deleted.id === item.id)) {
+                    return acc;
+                }
+
+                // Update changed records
+                const changedRecord = gridChanges.changedRecords.find((changed: any) => changed.id === item.id);
+                if (changedRecord) {
+                    acc.push({ ...item, ...changedRecord });
+                } else {
+                    acc.push(item);
+                }
+
+                return acc;
+            }, []);
+
+            // Add new records
+            if (gridChanges.addedRecords.length > 0) {
+                updatedResults.push(...gridChanges.addedRecords);
+            }
+
+            // Update state once with all changes
+            setFormDetailPage({
+                result: updatedResults,
+                count: updatedResults.length
+            });
+
             // Trigger form submission if form is valid
             const isValid = await form.trigger();
             if (!isValid) {
@@ -409,6 +454,27 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             setData: setFormPage
         });
     };
+    const toolbarClick = async (args: any) => {
+        console.log('toolbarClick >>> ', args);
+        if (args?.text === 'Add' || args?.item?.text === 'Add') {
+            args.cancel = true;
+            const newRecord = {
+                role: '',
+                description: '',
+                notes: '',
+                minutes: null,
+                userId: null,
+                isAccepted: false,
+                isRequired: true,
+                user: {
+                    firstName: '',
+                    lastName: '',
+                    id: null
+                }
+            };
+            gridRef.current.addRecord(newRecord);
+        }
+    }
     const handlePageChange = async (page: number) => {
         try {
             await loadRecord(page - 1);
@@ -527,6 +593,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             },
             template: (args: any) => {
                 if (args == null) return <span></span>;
+                if (args?.role?.length == null) return <span></span>;
                 return <div>{args?.role}</div>;
             }
         },
@@ -584,6 +651,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                                 toolbarItems={toolbarOptionsDetails}
                                                 onBatchSave={updateRecords}
                                                 onActionBegin={actionBegin}
+                                                onToolbarClick={toolbarClick}
                                             />
 
 

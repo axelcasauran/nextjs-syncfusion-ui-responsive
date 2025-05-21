@@ -2,28 +2,62 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { API } from '@framework/helper/api';
 import { useRouter } from 'next/navigation';
 import { SyncfusionGrid } from '@syncfusion/grid/grid';
+import { load, SortEventArgs } from '@syncfusion/ej2-react-grids';
+import { se } from 'date-fns/locale';
+import { set } from 'date-fns';
 
 const SearchPage = () => {
 
   const router = useRouter();
   const gridRef = useRef<any>(null);
   const [formPage, setFormPage] = useState<{ result: any[], count: number }>({ result: [], count: 0 });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchText, setSearchText] = useState('');
+  const [sortField, setSortField] = useState('id');
+  const [sortDirection, setSortDirection] = useState('desc');
 
-  useEffect(() => {
-    console.log('useEffect called');
-    fetch(API.service.list)
-      .then(res => res.json())
-      .then(data => {
-        setFormPage({
-          result: data.result || [], // The array of records
-          count: data.count || data.result?.length // Total count of records
-        });
-      });
-  }, []);
+  // Create a ref to track initial load
+  const isInitialLoad = useRef(true);
+
+  const loadData = useCallback(async () => {
+    try {
+
+      if (!isInitialLoad.current) return; // Skip if not initial load
+      isInitialLoad.current = false; // Mark as loaded
+
+      const sortFieldParam = sortField ? `&sort=${sortField}` : '';
+      const sortDirectionParam = sortDirection ? `&dir=${sortDirection}` : '';
+      const pageParam = page ? `&page=${page}` : '';
+      const pageSizeParam = pageSize ? `&limit=${pageSize}` : '';
+      const searchParam = searchText ? `&search=${encodeURIComponent(searchText)}` : '';
+      const url = `${API.service.list}?${sortFieldParam}${sortDirectionParam}${pageParam}${pageSizeParam}${searchParam}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      setFormPage({
+        result: data.result || [],
+        count: data.count || data.result?.length
+      });      
+    } catch (error) {
+      console.error('Error loading data:', error);
+    }
+  }, [sortField, sortDirection, page, pageSize, searchText]);
+
+  // Call loadData immediately
+  loadData();
+
+  // For subsequent loads (search, sort, etc), create a separate function
+  const reloadData = useCallback(async () => {
+    isInitialLoad.current = true; // Reset the flag
+    await loadData();
+  }, [loadData]);
+
 
   const rowSelected = (args: any) => {
     const selectedRecords = gridRef.current.getSelectedRecords();
@@ -37,13 +71,9 @@ const SearchPage = () => {
 
   const handlePageChange = async (page: number, pageSize: number) => {
     try {
-      const response = await fetch(`${API.service.list}?page=${page}&pageSize=${pageSize}`);
-      const data = await response.json();
-
-      setFormPage({
-        result: data.result,
-        count: data.count
-      });
+      setPage(page);
+      setPageSize(pageSize);
+      await reloadData();
     } catch (error) {
       console.error('Error fetching page:', error);
     }
@@ -51,17 +81,38 @@ const SearchPage = () => {
 
   const handleSearch = async (searchText: string) => {
     try {
-      const response = await fetch(`${API.service.list}?search=${encodeURIComponent(searchText)}`);
-      const data = await response.json();
-
-      setFormPage({
-        result: data.result,
-        count: data.count
-      });
+      setSearchText(searchText);
+      await reloadData();
     } catch (error) {
       console.error('Error searching:', error);
     }
   };
+
+  const actionBegin = async (args: SortEventArgs): Promise<void> => {
+    console.log('actionBegin', args);
+    if (args.requestType === 'sorting') {
+      args.cancel = true;
+      setSortField(args.columnName ?? 'id');
+      setSortDirection(args.direction == 'Ascending' ? 'asc' : 'desc');
+      await reloadData();
+    }
+  }
+
+  // const handleSorting = async (args: any) => {
+  //   try {
+  //     const sortField = args.columnName;
+  //     const sortDirection = args.direction.toLowerCase();
+  //     const response = await fetch(`${API.service.list}?sortField=${sortField}&sortDirection=${sortDirection}`);
+  //     const data = await response.json();
+
+  //     setFormPage({
+  //       result: data.result,
+  //       count: data.count
+  //     });
+  //   } catch (error) {
+  //     console.error('Error sorting:', error);
+  //   }
+  // };
 
   // GRID COLUMN CONFIGURATION
   // This is the configuration for the grid columns. You can modify it as per your requirements.
@@ -108,6 +159,8 @@ const SearchPage = () => {
           dataSource={formPage}
           gridRef={gridRef}
           allowSelection={true}
+          allowSorting={true}
+          onActionBegin={actionBegin}
           onRowSelected={rowSelected}
           onPageChange={handlePageChange}
           onSearch={handleSearch}

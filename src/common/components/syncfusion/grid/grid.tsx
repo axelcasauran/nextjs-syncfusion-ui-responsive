@@ -104,9 +104,9 @@ export const SyncfusionGrid = ({
 
   // Search function to handle input changes
   const handleClear = () => {
-    // Trigger search with empty string to reset
-    triggerSearch('');
+    // Trigger search with empty string to reset    
     setValue('');
+    triggerSearch('');
   };
   const triggerSearch = (searchText: string) => {
     if (onSearch) {
@@ -259,6 +259,7 @@ export const SyncfusionGrid = ({
           }
         }}
         actionComplete={(args) => {
+          console.log('actionComplete >>> ', args);
           if (args.requestType === 'searching' || args.requestType === 'filtering') {
             if (gridRef.current) {
               const filteredData = gridRef.current.currentViewData;
