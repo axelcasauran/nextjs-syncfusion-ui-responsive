@@ -1,11 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useEffect, useRef } from 'react';
 import { SidebarComponent, AccordionComponent, AccordionItemsDirective, AccordionItemDirective } from '@syncfusion/ej2-react-navigations';
-// import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-// import { ListViewComponent } from '@syncfusion/ej2-react-lists';
-// import styles from './page.module.css';
 
 export default function Sidebar() {
 

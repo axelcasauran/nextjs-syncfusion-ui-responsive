@@ -1,0 +1,63 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+---
+description: Core development guidelines for the Irely Next.js project.
+globs: ["src/**/*"] # Apply to source files
+alwaysApply: true
+---
+
+# Irely Next.js - Core Development Guidelines
+
+## 1. Core Principles
+
+*   **Simplicity First:** Always opt for the simplest, most straightforward solution that meets the requirements. Avoid over-engineering.
+*   **Focused Edits:** When making changes, modify only the necessary files. Do **not** touch unrelated code or files.
+*   **Maintainability:** Write clear, readable, and well-structured code. Follow established conventions.
+*   **Performance:** Be mindful of performance implications, especially regarding data fetching and component rendering. 
+Use Next.js features like Server Components and Image optimization effectively.
+
+## 2. Project Structure
+
+Follow the established feature-focused structure within `src/`:
+
+```
+/src
+├── app/          # Next.js App Router (pages, layouts, API routes, loading states)
+├── components/   # Shared UI & Layout components (common/, layout/, ui/)
+├── context/      # React Context (Use sparingly, prefer Zustand/Tanstack Query)
+├── data/         # Static data, type definitions (non-feature specific)
+├── features/     # Domain-specific modules (components, hooks, services)
+├── hooks/        # Globally reusable hooks
+├── lib/          # Utility functions, helpers
+├── styles/       # Global styles (globals.css)
+├── types/        # Shared TypeScript types/interfaces
+```
+
+*   Use the App Router for routing (`page.tsx`, `layout.tsx`, `loading.tsx`, route groups `(group)`).
+*   Organize components logically (shared vs. feature-specific).
+
+## 3. Key Technologies & Usage
+
+*   **Next.js:** Leverage App Router features, Server Components for data fetching where possible.
+*   **TypeScript:** Use strict typing. Avoid `any`. Define types clearly (in `types/` or feature-specific).
+*   **Tailwind CSS:** Utility-first styling. Configure dark mode via `tailwind.config.ts` and manage state using a theme provider (e.g., `components/theme-provider.tsx`). Keep global styles minimal.
+*   **State Management:**
+    *   **API State:** Use **TanStack Query** for server state management (fetching, caching, synchronization).
+    *   **Client State:** Use **Zustand** for complex client-side state when React's built-in state/context isn't sufficient.
+
+## 4. Component & API Design
+
+*   **Components:** Build functional components. Place reusable UI in `components/`, feature-specific UI in `features/{feature}/components/`.
+*   **Hooks:** Create reusable logic in `hooks/` or `features/{feature}/hooks/`.
+*   **API Routes:** Place in `app/api/`. Define request/response types clearly.
+*   **Data Fetching:** Prefer Server Components or TanStack Query in Client Components. Handle loading and error states gracefully.
+
+## 5. Testing
+
+*   (Specify testing strategy - e.g., Use Jest and React Testing Library for unit/integration tests).
+
+---
+*Remember to keep dependencies updated and document any complex logic.* 

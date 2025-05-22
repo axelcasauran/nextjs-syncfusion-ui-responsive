@@ -1,16 +1,16 @@
 import { z } from "zod";
+import { createFormSchema } from "@framework/utils/form-schema";
 
-export const FormSchema = z.object({
-  id: z.string().optional().nullable(), // Add the 'id' field
-  name: z.string().min(1, "Name is required"),
-  location: z.string().min(1, "Location is required"),
-  type: z.string({ invalid_type_error: "Please select a type"}).min(1, "Type is required"),
-  startDate: z.date({
-    required_error: "Start date is required",
-  }),
-  endDate: z.date().nullable().optional(),
-  description: z.string().optional(),
-  isActive: z.boolean().default(false).nullable(),
+// The schema is 100% automatically generated from the Prisma model
+// No need to specify any fields - they are all inferred from the Prisma schema
+export const FormSchema = createFormSchema({
+  model: "Service",
+  // Just override error messages where needed - all other validation is automatic
+  customErrorMessages: {
+    name: "Service name is required",
+    location: "Please specify a location",
+    type: "Service type is required"
+  }
 });
 
 export type FormSchemaData = z.infer<typeof FormSchema>;

@@ -40,10 +40,14 @@ const SearchPage = () => {
 
   const _service: Service = {
     id: '',
-    name: '',
+    name: '', 
     description: '',
     type: '',
-    location: ''
+    serviceDetail: [],
+    location: '',
+    startDate: null,
+    endDate: null,
+    isActive: false,
   };
 
   const _title = 'Worship Services';

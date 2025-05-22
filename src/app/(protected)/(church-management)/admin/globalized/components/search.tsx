@@ -48,6 +48,10 @@ const SearchPage = () => {
     name: '',
     description: '',
     type: 'department',
+    startDate: null,
+    endDate: null,
+    isActive: false,
+    serviceDetail: [],
     location: 'location',
   };  
 

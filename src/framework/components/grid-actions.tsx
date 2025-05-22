@@ -1,23 +1,22 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ActionEventArgs, SortEventArgs, FilterEventArgs } from '@syncfusion/ej2-react-grids';
+import { ActionEventArgs, SortEventArgs, FilterEventArgs, GridComponent } from '@syncfusion/ej2-react-grids';
 
-interface GridActionProps {
+interface GridActionProps<T> {
   args: ActionEventArgs;
   apiEndpoint: string;
-  gridRef: React.RefObject<any>;
-  setData: (data: any) => void;
+  gridRef: React.RefObject<GridComponent>;
+  setData: (data: T) => void;
 }
 
-export async function gridAction({
+export async function gridAction<T>({
   args,
   apiEndpoint,
   gridRef,
   setData
-}: GridActionProps) {
+}: GridActionProps<T>) {
   if (args.action === 'clearFilter') {
     const response = await fetch(apiEndpoint);
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json() as T;
       setData(data);
       gridRef.current?.hideSpinner();
     }
@@ -35,7 +34,7 @@ export async function gridAction({
 
       const response = await fetch(`${apiEndpoint}?${params}`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as T;
         setData(data);
         gridRef.current?.hideSpinner();
       }
@@ -57,7 +56,7 @@ export async function gridAction({
 
       const response = await fetch(`${apiEndpoint}?${params}`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as T;
         setData(data);
         gridRef.current?.hideSpinner();
       }
@@ -77,7 +76,7 @@ export async function gridAction({
 
       const response = await fetch(`${apiEndpoint}?${params}`);
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as T;
         setData(data);
         gridRef.current?.hideSpinner();
       }

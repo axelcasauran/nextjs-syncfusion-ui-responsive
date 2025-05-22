@@ -1,45 +1,83 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Alert, AlertIcon, AlertTitle } from "@reui/ui/alert";
 import { RiCheckboxCircleFill, RiErrorWarningFill } from "@remixicon/react";
 import { toast } from "sonner";
 
-export const saveChanges = async (gridRef: React.RefObject<any>, setFormPage: any, apiGet: string, apiUpdate: string, Entity: string) => {
-    const batchChanges = gridRef.current.getBatchChanges();
-    if (!batchChanges || (!batchChanges.addedRecords.length && !batchChanges.changedRecords.length && !batchChanges.deletedRecords.length)) {
-        gridRef.current.editModule.endEdit();
-        return;
-    }
+interface GridBatchChanges<T> {
+  addedRecords: T[];
+  changedRecords: T[];
+  deletedRecords: T[];
+}
 
+interface GridRef {
+  getBatchChanges(): GridBatchChanges<unknown>;
+  editModule: {
+    endEdit(): void;
+  };
+}
+
+interface SaveChangesProps<T, R> {
+  gridRef: React.RefObject<GridRef>;
+  setFormPage: (data: R) => void;
+  apiGet: string;
+  apiUpdate: string;
+  Entity: string;
+}
+
+export const saveChanges = async <T, R>({ 
+  gridRef, 
+  setFormPage, 
+  apiGet, 
+  apiUpdate, 
+  Entity 
+}: SaveChangesProps<T, R>) => {
+  if (!gridRef.current) return;
+
+  const batchChanges = gridRef.current.getBatchChanges();
+  if (!batchChanges || (!batchChanges.addedRecords.length && !batchChanges.changedRecords.length && !batchChanges.deletedRecords.length)) {
+    gridRef.current.editModule.endEdit();
+    return;
+  }
+
+  try {
     const response = await fetch(apiUpdate, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(batchChanges),
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(batchChanges),
     });
 
-    console.log(response);
     if (response.ok) {
-        const refreshResponse = await fetch(apiGet);
-        const newData = await refreshResponse.json();
-        setFormPage(newData.result);
+      const refreshResponse = await fetch(apiGet);
+      const newData = await refreshResponse.json();
+      setFormPage(newData.result);
 
-        toast.custom(() => (
-            <Alert variant="mono" icon="success">
-                <AlertIcon>
-                    <RiCheckboxCircleFill />
-                </AlertIcon>
-                <AlertTitle>{Entity} updated successfully</AlertTitle>
-            </Alert>
-        ));
-
+      toast.custom(() => (
+        <Alert variant="mono" icon="success">
+          <AlertIcon>
+            <RiCheckboxCircleFill />
+          </AlertIcon>
+          <AlertTitle>{Entity} updated successfully</AlertTitle>
+        </Alert>
+      ));
+    } else {
+      toast.custom(() => (
+        <Alert variant="mono" icon="destructive">
+          <AlertIcon>
+            <RiErrorWarningFill />
+          </AlertIcon>
+          <AlertTitle>Error updating {Entity}</AlertTitle>
+        </Alert>
+      ));
     }
-    else {
-        toast.custom(() => (
-            <Alert variant="mono" icon="destructive">
-                <AlertIcon>
-                    <RiErrorWarningFill />
-                </AlertIcon>
-                <AlertTitle>error</AlertTitle>
-            </Alert>
-        ));
-    }
+  } catch (error) {
+    console.error('Save changes failed:', error);
+    toast.custom(() => (
+      <Alert variant="mono" icon="destructive">
+        <AlertIcon>
+          <RiErrorWarningFill />
+        </AlertIcon>
+        <AlertTitle>Error: {error instanceof Error ? error.message : 'Unknown error'}</AlertTitle>
+      </Alert>
+    ));
+  }
 };

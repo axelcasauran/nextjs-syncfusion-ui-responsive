@@ -9,6 +9,42 @@ const _entity = 'Service';
 const _master = 'service';
 const _detail = 'serviceDetail';
 
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { error } = await validateSession();
+  if (error) return error;
+
+  try {
+
+    const { id } = await params;
+    const record = await findRecord('service', {
+      where: { id },
+      include: {
+        serviceDetail: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              }
+            }
+          }
+        }
+      }
+    });
+
+    return NextResponse.json(record);
+
+  } catch (error) {
+    return NextResponse.json(
+      {
+        message: (error as Error).message || 'Oops! Something didn’t go as planned. Please try again in a moment.',
+      },
+      { status: 500 },
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { error, session } = await validateSession();
