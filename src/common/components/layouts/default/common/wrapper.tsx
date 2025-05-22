@@ -95,12 +95,12 @@ const Wrapper = ({ children }: { children: ReactNode }) => {
     {
       nodeId: '01', nodeText: 'Services',
     },
-    {
-      nodeId: '02', nodeText: 'Syncfusion',
-    },
-    {
-      nodeId: '03', nodeText: 'Volunteers',
-    }
+    // {
+    //   nodeId: '02', nodeText: 'Syncfusion',
+    // },
+    // {
+    //   nodeId: '03', nodeText: 'Volunteers',
+    // }
   ];
   const width: string = '220px';
   const target: string = '.main-sidebar-content';

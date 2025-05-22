@@ -14,6 +14,8 @@ interface BatchOperationOptions {
     clientIp: string;
     entityType: string;
     type?: 'master' | 'detail';
+    masterId?: string; // ID of the master record for details
+    masterField?: string; // Field name that links to the master (default: model + 'Id')
 }
 
 export async function batchOperations({
@@ -24,19 +26,31 @@ export async function batchOperations({
     userId,
     clientIp,
     entityType,
-    type
+    type,
+    masterId,
+    masterField
 }: BatchOperationOptions) {
     if (!prismaModels[model]) {
         throw new Error(`Model ${model} not found`);
     }
 
     let _newIds = null;
+    const isDetail = type === 'detail';
+    const foreignKeyField = masterField || (isDetail ? model.replace('Detail', '') + 'Id' : null);
 
     // +++++++++++++++++++++++
     // Batch Update
     await prisma.$transaction(async (tx) => {
         // Handle added records
         if (addedRecords?.length) {
+            // For detail records, ensure they have the master ID
+            if (isDetail && masterId && foreignKeyField) {
+                addedRecords = addedRecords.map(item => ({
+                    ...item,
+                    [foreignKeyField]: masterId
+                }));
+            }
+
             const newRecords = await (tx[model as keyof typeof tx] as any).createManyAndReturn({
                 data: addedRecords
             });
@@ -46,6 +60,14 @@ export async function batchOperations({
 
         // Handle updated records
         if (changedRecords?.length) {
+            // For detail records, ensure they have the master ID
+            if (isDetail && masterId && foreignKeyField) {
+                changedRecords = changedRecords.map(item => ({
+                    ...item,
+                    [foreignKeyField]: masterId
+                }));
+            }
+
             await Promise.all(
                 changedRecords.map(item =>
                     (tx[model as keyof typeof tx] as any).update({
@@ -75,19 +97,40 @@ export async function batchOperations({
     // Handle added records
     if (addedRecords?.length) {
         // Audit logs
-        await systemLog({ event: 'create', userId: userId, entityId: _newIds || '', entityType: entityType, description: entityType + ' created by user', ipAddress: clientIp });
+        await systemLog({ 
+            event: 'create', 
+            userId: userId, 
+            entityId: _newIds || '', 
+            entityType: entityType, 
+            description: `${entityType} created`, 
+            ipAddress: clientIp 
+        });
     }
     // Handle updated records
     if (changedRecords?.length) {
         // Audit logs
         const updatedIds = changedRecords.map((record: any) => record.id).join(', ');
-        await systemLog({ event: 'update', userId: userId, entityId: updatedIds, entityType: entityType, description: entityType + ' updated by user', ipAddress: clientIp });
+        await systemLog({ 
+            event: 'update', 
+            userId: userId, 
+            entityId: updatedIds, 
+            entityType: entityType, 
+            description: `${entityType} updated`, 
+            ipAddress: clientIp 
+        });
     }
     // Handle deleted records
     if (deletedRecords?.length) {
         // Audit logs
         const deletedIds = deletedRecords.map((record: any) => record.id).join(', ');
-        await systemLog({ event: 'delete', userId: userId, entityId: deletedIds, entityType: entityType, description: entityType + ' deleted by user', ipAddress: clientIp });
+        await systemLog({ 
+            event: 'delete', 
+            userId: userId, 
+            entityId: deletedIds, 
+            entityType: entityType, 
+            description: `${entityType} deleted`, 
+            ipAddress: clientIp 
+        });
     }
 
     if (type === 'master') {
@@ -96,15 +139,16 @@ export async function batchOperations({
     else {
         return { success: true };
     }
-
 }
 
-// Add this helper function at the top of the file
+// Helper function to filter schema fields
 function filterSchemaFields(data: any): any {
     // Filter out object and array fields
     const filteredData = Object.entries(data).reduce((acc: any, [key, value]) => {
-        // Only include primitive values (not objects or arrays)
-        if (value !== null && typeof value !== 'object') {
+        if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+            // Skip object fields (like user objects)
+            return acc;
+        } else {
             acc[key] = value;
         }
         return acc;

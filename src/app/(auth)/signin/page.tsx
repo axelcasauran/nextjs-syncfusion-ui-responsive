@@ -54,7 +54,7 @@ export default function LoginPage() {
         const errorData = JSON.parse(response.error);
         setError(errorData.message);
       } else {
-        router.push('/parents/kids');
+        router.push('/admin/service-and-events');
       }
     } catch (err) {
       setError(

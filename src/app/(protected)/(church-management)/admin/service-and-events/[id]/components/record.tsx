@@ -1,9 +1,10 @@
+/* eslint-disable react/display-name */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { TabComponent, TabItemDirective, TabItemsDirective } from '@syncfusion/ej2-react-navigations';
 import { Card, CardContent } from '@reui/ui/card';
 import { Skeleton } from '@reui/ui/skeleton';
@@ -19,6 +20,8 @@ import { API } from '@framework/helper/api';
 import { FormSchema, FormSchemaData } from '../../forms/forms';
 import { Toolbar } from '@syncfusion/toolbar/toolbar';
 import { useRouter } from 'next/navigation';
+import { GridComponent } from '@syncfusion/ej2-react-grids';
+import { toast } from 'sonner';
 
 const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
@@ -27,7 +30,9 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
     let IDs: string[] = [];
     const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
     const [page, setPage] = useState(1);
-    const Loading = () => (
+    
+    // Memoize the Loading component to prevent unnecessary re-renders
+    const Loading = useMemo(() => () => (
         <Card>
             <CardContent>
                 <dl className="grid grid-cols-[auto_1fr] text-muted-foreground gap-3 text-sm mb-5">
@@ -83,7 +88,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 <Skeleton className="h-9 w-32" />
             </CardContent>
         </Card>
-    );
+    ), []);
 
     // FORM CONFIGURATION
     const form = useForm<FormSchemaData>({
@@ -100,7 +105,9 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         },
     });
     const formRef = useRef<HTMLFormElement>(null!);
-    const [formPage, setFormPage] = useState([]);
+    const [formPage, setFormPage] = useState<any[]>([]);
+    
+    // Load record data when ID changes
     useEffect(() => {
         if (id && id !== 'new') {
             try {
@@ -119,29 +126,49 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
     // GRID CONFIGURATION
     const toolbarOptionsDetails = ['Add', 'Delete', 'Cancel', 'Search'];
-    const gridRef = useRef<any>(null);
+    const gridRef = useRef<GridComponent>(null);
     const [formDetailPage, setFormDetailPage] = useState<{ result: any[], count: number }>({
         result: [],
         count: 0
     });
 
     // CONTROL HANDLERS
-    // DEPARTMENT COMBOBOX
-    const [user, setUser] = useState([]);
+    // USER COMBOBOX DATA
+    const [user, setUser] = useState<any[]>([]);
     const fields = { text: 'fullName', value: 'id' };
+    
+    // Fetch user data only once on mount
     useEffect(() => {
-        fetch('/api/church-management/admin/volunteers')
-            .then(res => res.json())
-            .then(data => setUser(data.result));
+        const fetchUsers = async () => {
+            try {
+                const response = await fetch('/api/church-management/admin/volunteers');
+                const data = await response.json();
+                setUser(data.result || []);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+        
+        fetchUsers();
     }, []);
-    // USER COMBOBOX
-    const userSelection = ((data: any) => {
+    
+    // Memoize the userSelection component for better performance
+    const userSelection = useCallback((data: any) => {
         return (
-            <MultiColumnComboBoxComponent dataSource={user} value={data.userId} popupWidth={400} popupHeight={200} fields={fields} allowFiltering={true} filterType={'Contains'}
+            <MultiColumnComboBoxComponent 
+                dataSource={user} 
+                value={data.userId} 
+                popupWidth={400} 
+                popupHeight={200} 
+                fields={fields} 
+                allowFiltering={true} 
+                filterType={'Contains'}
                 change={(e: any) => {
                     if (e.itemData && gridRef.current) {
                         try {
                             setTimeout(() => {
+                                if (!gridRef.current) return;
+                                
                                 const rowIndex = gridRef.current.selectedRowIndex;
                                 data.user.firstName = e.item.firstName;
                                 data.user.lastName = e.item.lastName;
@@ -156,20 +183,12 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                     }
                                 };
 
-                                // // Update directly using updateCell
+                                // Update directly using updateCell
                                 gridRef.current.updateCell(rowIndex, 'user.firstName', e.item.firstName);
                                 gridRef.current.updateCell(rowIndex, 'user.lastName', e.item.lastName);
                                 gridRef.current.updateCell(rowIndex, 'user.id', e.item.id);
                                 gridRef.current.updateCell(rowIndex, 'userId', updatedData.userId);
                                 gridRef.current.saveCell();
-
-                                // formDetailPage.result.forEach((item: any) => {
-                                //     if (item.id === data.id) {
-                                //         item.user = updatedData.user;
-                                //         item.userId = updatedData.userId;
-                                //         return;
-                                //     }
-                                // });
                             }, 0);
                         } catch (error) {
                             console.error('Error updating grid row:', error);
@@ -181,122 +200,47 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                     <ColumnDirective field='lastName' header='Last Name' width={140}></ColumnDirective>
                 </ColumnsDirective>
             </MultiColumnComboBoxComponent>
-        )
-    });
-    const firstNameLastName = ((data: any) => {
+        );
+    }, [user]);
+    
+    // Memoize the firstNameLastName component
+    const firstNameLastName = useCallback((data: any) => {
         if (data?.user == null) return <span></span>;
         return (
             <span>{data.user.firstName} {data.user.lastName}</span>
         );
-    });
-    // ROLE COMBOBOX
-    // const roleFields = { text: 'role', value: 'role' };
-    // const roles = [{ "role": 'Preacher' }, { "role": 'Host' }, { "role": 'Tech' }, { "role": 'Registration' }, { "role": 'Door keeper' }, { "role": 'Volunteer' }];
-    // const roleSelection = ((data: any) => {
-    //     console.log('roleSelection data', data);
-    //     return (
-    //         <MultiColumnComboBoxComponent dataSource={roles} value={data.role} popupWidth={400} popupHeight={200} fields={roleFields} allowFiltering={true} filterType={'Contains'}
-    //             change={(e: any) => {
-    //                 if (e.itemData && gridRef.current) {
-    //                     try {
-    //                         setTimeout(() => {
-    //                             const row = gridRef.current.getRowByIndex(gridRef.current.getRowIndexByPrimaryKey(data.id));
-    //                             let rowIndex = gridRef.current.getRowIndexByPrimaryKey(data.id);
-    //                             if (!row) {
-    //                                 rowIndex = 0;
-    //                             }
-    //                             gridRef.current.updateCell(rowIndex, 'role', e.value);
-    //                             // gridRef.current.saveCell();
-    //                             // formDetailPage.result.forEach((item: any) => {
-    //                             //     if (item.id === data.id) {
-    //                             //         item.role = e.itemData.role;
-    //                             //         return;
-    //                             //     }
-    //                             // });
-    //                         }, 0);
-    //                     } catch (error) {
-    //                         console.error('Error updating grid row:', error);
-    //                     }
-    //                 }
-    //             }}
-    //             >
-    //             <ColumnsDirective>
-    //                 <ColumnDirective field='role' header='Role' width={120}></ColumnDirective>
-    //             </ColumnsDirective>
-    //         </MultiColumnComboBoxComponent>
-    //     )
-    // });
-    const roles = [
+    }, []);
+
+    // Memoize the roles array
+    const roles = useMemo(() => [
         { role: 'Preacher' },
         { role: 'Host' },
         { role: 'Tech' },
         { role: 'Registration' },
         { role: 'Door keeper' },
         { role: 'Volunteer' }
-    ];
-    // const roleSelection = ((data: any) => {
-    //     return (
-    //         <ComboBoxComponent
-    //             dataSource={roles}
-    //             value={data.role}
-    //             allowFiltering={true}
-    //             filterType='Contains'
-    //             change={(e: any) => {
-    //                 if (e.value && gridRef.current) {
-    //                     // Defer the update to next tick to avoid DOM manipulation during blur
-    //                     requestAnimationFrame(() => {
-    //                         try {
-    //                             // Get current row data
-    //                             const currentData = gridRef.current.getCurrentViewRecords();
-    //                             const rowData = currentData.find((r: any) => r.id === data.id);
-
-    //                             if (rowData) {
-    //                                 // Update data model first
-    //                                 rowData.role = e.value;
-
-    //                                 // Then update grid cell
-    //                                 const rowIndex = gridRef.current.getRowIndexByPrimaryKey(data.id);
-    //                                 if (rowIndex !== undefined) {
-    //                                     gridRef.current.setCellValue(data.id, 'role', e.value);
-    //                                     formDetailPage.result.forEach((item: any) => {
-    //                                         if (item.id === data.id) {
-    //                                             item.role = e.value;
-    //                                             return;
-    //                                         }
-    //                                     });
-    //                                 }
-    //                             }
-    //                         } catch (error) {
-    //                             console.error('Error updating grid row:', error);
-    //                         }
-    //                     });
-    //                 }
-    //             }}
-    //         />
-    //     );
-    // });
-
-
-
+    ], []);
 
     // CRUD OPERATIONS
-    const loadRecord = async (index: number) => {
+    const loadRecord = useCallback(async (index: number) => {
         // Fetch record data using the ID        
         await fetchRecord(IDs[index] || selectedRecords[index]);
-    }
-    const fetchRecord = async (id: string) => {
-        // Fetch record data using the ID
-        fetch(`${API.service.get}/${id}`)
-            .then(res => res.json())
-            .then(data => {
-                // Set form values with fetched data
-                bindData(data);
-            })
-            .catch(error => {
-                console.error('Error fetching record:', error);
-            });
-    }
-    const bindData = async (data: any) => {
+    }, [IDs, selectedRecords]);
+    
+    const fetchRecord = useCallback(async (id: string) => {
+        try {
+            const response = await fetch(`${API.service.get}/${id}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch record: ${response.statusText}`);
+            }
+            const data = await response.json();
+            bindData(data);
+        } catch (error) {
+            console.error('Error fetching record:', error);
+        }
+    }, []);
+    
+    const bindData = useCallback(async (data: any) => {
         form.reset({
             id: data.id,
             name: data.name,
@@ -328,68 +272,31 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 count: 0
             });
         }
-    };
-    const updateRecords = async () => {
-        saveChanges(gridRef, setFormDetailPage, API.service.get, API.service.update, API.service.title);
-    };
-    const onSave = async () => {
+    }, [form, formDetailPage.result]);
+    
+    const updateRecords = useCallback(async () => {
+        if (gridRef.current) {
+            saveChanges(gridRef, setFormDetailPage, API.service.get, API.service.update, API.service.title);
+        }
+    }, []);
+    
+    const onSave = useCallback(async () => {
         try {
-            // Store grid changes before validation
-            const gridChanges = gridRef.current?.getBatchChanges() || [];
+            // IMPORTANT: First capture the grid changes before any validation or state changes
+            const gridChanges = gridRef.current?.getBatchChanges() || { 
+                addedRecords: [], 
+                changedRecords: [], 
+                deletedRecords: [] 
+            };
 
+            // Type cast the gridChanges for type safety
+            const typedGridChanges = gridChanges as {
+                addedRecords: any[];
+                changedRecords: any[];
+                deletedRecords: any[];
+            };
 
-            console.log('gridChanges >>> ', gridChanges);
-
-            // gridChanges.changedRecords.forEach((item: any) => {
-            //     formDetailPage.result.forEach((item2: any) => {
-            //         if (item2.id === item.id) {
-            //             item2 = item;
-            //             return;
-            //         }
-            //     });
-            // });
-
-            // gridChanges.deletedRecords.forEach((item: any) => {
-            //     const index = formDetailPage.result.findIndex((item2: any) => item2.id === item.id);
-            //     if (index !== -1) {
-            //         formDetailPage.result.splice(index, 1);
-            //     }
-            // });
-
-            // gridChanges.addedRecords.forEach((item: any) => {
-            //     formDetailPage.result.push(item);
-            // });
-
-            // Create new array instead of modifying existing one
-            const updatedResults = formDetailPage.result.reduce((acc: any[], item: any) => {
-                // Skip deleted records
-                if (gridChanges.deletedRecords.some((deleted: any) => deleted.id === item.id)) {
-                    return acc;
-                }
-
-                // Update changed records
-                const changedRecord = gridChanges.changedRecords.find((changed: any) => changed.id === item.id);
-                if (changedRecord) {
-                    acc.push({ ...item, ...changedRecord });
-                } else {
-                    acc.push(item);
-                }
-
-                return acc;
-            }, []);
-
-            // Add new records
-            if (gridChanges.addedRecords.length > 0) {
-                updatedResults.push(...gridChanges.addedRecords);
-            }
-
-            // Update state once with all changes
-            setFormDetailPage({
-                result: updatedResults,
-                count: updatedResults.length
-            });
-
-            // Trigger form submission if form is valid
+            // Now that we've safely captured the grid changes, trigger form validation
             const isValid = await form.trigger();
             if (!isValid) {
                 console.error('Form validation failed');
@@ -398,24 +305,52 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
 
             /// Get form data and prepare save payload
             const formData = form.getValues();
-            if (formData.id == null) delete formData.id;
+            const isNewRecord = id === 'new' || formData.id == null;
+            
+            // For new records, we don't include ID
+            if (isNewRecord) {
+                delete formData.id;
+            }
 
-            if (gridChanges.addedRecords.length > 0) {
-                gridChanges.addedRecords.forEach((item: any) => {
-                    delete item.id;
-                    delete item.user;
-                    item.serviceId = formData.id;
+            // Prepare master record data
+            const masterData = isNewRecord 
+                ? { addedRecords: [formData] }
+                : { changedRecords: [formData] };
+            
+            // Clean up detail records for submission
+            // For new records, don't include any serviceId or user objects
+            if (typedGridChanges.addedRecords.length > 0) {
+                typedGridChanges.addedRecords = typedGridChanges.addedRecords.map(item => {
+                    const cleanItem = { ...item };
+                    delete cleanItem.id; // Remove any temporary IDs
+                    delete cleanItem.user; // Remove user object as we only need userId
+                    delete cleanItem.serviceId; // Let the server set this
+                    return cleanItem;
                 });
             }
 
+            if (typedGridChanges.changedRecords.length > 0) {
+                typedGridChanges.changedRecords = typedGridChanges.changedRecords.map(item => {
+                    const cleanItem = { ...item };
+                    delete cleanItem.user; // Remove user object as we only need userId
+                    return cleanItem;
+                });
+            }
+
+            // Log exactly what's being sent to help diagnose issues
+            console.log('Saving data:', {
+                masterData,
+                details: typedGridChanges,
+                isNewRecord
+            });
+
+            // Prepare the final save data with both master and detail records
             const saveData = {
-                ...(formData.id === undefined
-                    ? { addedRecords: [formData] }
-                    : { changedRecords: [formData] }
-                ),
-                details: gridChanges || []
+                ...masterData,
+                details: typedGridChanges
             };
 
+            // Send the data to the server
             const response = await fetch(`${API.service.update}`, {
                 method: 'POST',
                 headers: {
@@ -425,37 +360,43 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to save data');
+                const errorData = await response.json();
+                throw new Error(`Failed to save data: ${errorData.error || response.statusText}`);
             }
-            console.log('save >>>> ', formDetailPage);
+            
             const responseData = await response.json();
-            if (id === 'new' && responseData.result?.id) {
+            
+            // If it was a new record, update the URL with the new ID
+            if (isNewRecord && responseData.result?.id) {
                 const encodedIds = btoa(JSON.stringify(responseData.result.id));
                 const urlSafeIds = encodeURIComponent(encodedIds);
 
                 window.history.replaceState(null, '', urlSafeIds);
-                bindData(responseData.result);
             }
-            else {
-                bindData(responseData.result);
-            }
+            
+            // Bind the data returned from the server to update the form and grid
+            bindData(responseData.result);
+            
+            // Show success message
+            toast.success('Record saved successfully');
 
         } catch (error) {
             console.error('Save failed:', error);
+            toast.error(`Failed to save record: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
-    };
+    }, [bindData, form, id]);
 
     // EVENT HANDLER
-    const actionBegin = async (args: ActionEventArgs) => {
+    const actionBegin = useCallback(async (args: ActionEventArgs) => {
         await gridAction({
             args,
             apiEndpoint: API.service.get,
             gridRef,
             setData: setFormPage
         });
-    };
-    const toolbarClick = async (args: any) => {
-        console.log('toolbarClick >>> ', args);
+    }, []);
+    
+    const toolbarClick = useCallback(async (args: any) => {
         if (args?.text === 'Add' || args?.item?.text === 'Add') {
             args.cancel = true;
             const newRecord = {
@@ -472,25 +413,27 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                     id: null
                 }
             };
-            gridRef.current.addRecord(newRecord);
+            if (gridRef.current) {
+                gridRef.current.addRecord(newRecord);
+            }
         }
-    }
-    const handlePageChange = async (page: number) => {
+    }, []);
+    
+    const handlePageChange = useCallback(async (page: number) => {
         try {
             await loadRecord(page - 1);
             setPage(page);
         } catch (error) {
             console.error('Error fetching page:', error);
         }
-    };
-
+    }, [loadRecord]);
 
     // ++++++++++++++ CONTENT ++++++++++++++
 
-    // FORM CONTENT
-    const formRows: FormRowProps<FormSchemaData>[] = [
+    // FORM CONTENT - Memoize form rows to prevent unnecessary re-renders
+    const formRows: FormRowProps<FormSchemaData>[] = useMemo(() => [
         {
-            columns: { xs: 1, sm: 2, md: 3, lg: 5 }, // Responsive columns
+            columns: { xs: 1, sm: 2, md: 3, lg: 5 },
             fields: [
                 {
                     name: 'id',
@@ -503,7 +446,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                     required: true,
                     placeholder: 'Enter a name',
                     control: form.control,
-                    colSpan: { xs: 1, sm: 2, md: 2, lg: 1 } // Responsive column span
+                    colSpan: { xs: 1, sm: 2, md: 2, lg: 1 }
                 },
                 {
                     name: 'description',
@@ -560,10 +503,10 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                 }
             ]
         }
-    ];
+    ], [form.control]);
 
-    // GRID CONTENT
-    const detailGridColumns = [
+    // GRID CONTENT - Memoize grid columns to prevent unnecessary re-renders
+    const detailGridColumns = useMemo(() => [
         { type: 'checkbox', width: 10, allowResizing: false, textAlign: 'Center' },
         { field: 'id', isPrimaryKey: true, visible: false },
         { field: 'serviceId', visible: false },
@@ -581,8 +524,6 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
             headerText: 'Role',
             width: 40,
             editType: 'dropdownedit',
-            // editTemplate: roleSelection            
-            // template: roleSelection
             edit: {
                 params: {
                     dataSource: roles,
@@ -602,14 +543,11 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         { field: 'minutes', headerText: 'Minutes', width: 25, type: 'number', hideAtMedia: true },
         { field: 'isAccepted', headerText: 'Accepted', width: 25, type: 'boolean', displayAsCheckBox: true, editType: 'booleanedit', textAlign: 'Center', hideAtMedia: true },
         { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, editType: 'booleanedit', textAlign: 'Center', hideAtMedia: true },
-    ];
+    ], [firstNameLastName, roles, userSelection]);
 
-    // ++++++++++++ END CONTENT ++++++++++++
-
-
-    const Content = () => {
+    // Memoize Content component to prevent unnecessary re-renders
+    const Content = useCallback(() => {
         return (
-            // <>
             <div className="flex flex-col h-full">
                 <Toolbar
                     showSave
@@ -632,9 +570,7 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                             <TabItemDirective header={{ text: 'Details' }}
                                 content={() => (
                                     <div className="pt-5">
-
                                         <form id="serviceForm" ref={formRef}>
-
                                             <SyncfusionForm
                                                 rows={formRows}
                                                 control={form.control}
@@ -646,40 +582,26 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                                 dataSource={formDetailPage}
                                                 allowPaging={false}
                                                 height={200}
-                                                gridRef={gridRef}
+                                                gridRef={gridRef as any}
                                                 allowEdit={true}
                                                 toolbarItems={toolbarOptionsDetails}
                                                 onBatchSave={updateRecords}
                                                 onActionBegin={actionBegin}
                                                 onToolbarClick={toolbarClick}
                                             />
-
-
                                         </form>
                                     </div>
                                 )}
                             ></TabItemDirective>
                             <TabItemDirective header={{ text: 'History' }}
-                                content={() => (
-                                    // <SyncfusionGrid
-                                    //             columns={detailGridColumns}
-                                    //             dataSource={formDetailPage}
-                                    //             height={200}
-                                    //             gridRef={gridRef}
-                                    //             allowEdit={true}
-                                    //             toolbarItems={toolbarOptionsDetails}
-                                    //             onBatchSave={updateRecords}
-                                    //             onActionBegin={actionBegin}
-                                    //         />
-                                    <></>
-                                )}
+                                content={() => (<></>)}
                             ></TabItemDirective>
                         </TabItemsDirective>
                     </TabComponent>
-                </div></div>
-            // </>
+                </div>
+            </div>
         );
-    };
+    }, [actionBegin, detailGridColumns, formDetailPage, formRows, form.control, form.formState.errors, handlePageChange, onSave, page, router, selectedRecords, toolbarClick, updateRecords]);
 
     return (
         <>

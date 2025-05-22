@@ -17,7 +17,8 @@ export async function POST(request: NextRequest) {
     const clientIp = getClientIP(request);
     const body = await request.json();
 
-    const result = await batchOperations({
+    // First handle the master record and get its ID
+    const masterResult = await batchOperations({
       model: _master,
       ...body,
       userId: session.user.id,
@@ -26,20 +27,35 @@ export async function POST(request: NextRequest) {
       type: 'master'
     });
 
+    // Get the master ID (either new or existing)
+    const masterId = masterResult.ids;
+
+    // If we have details, process them
     if (body.details) {
+      // For new records, add the master ID to all details
+      if (body.addedRecords && body.details.addedRecords) {
+        body.details.addedRecords = body.details.addedRecords.map((detail: any) => ({
+          ...detail,
+          serviceId: masterId
+        }));
+      }
+
+      // Process the detail records
       await batchOperations({
         model: _detail,
         ...body.details,
         userId: session.user.id,
         clientIp,
-        entityType: _entity,
-        type: 'detail'
+        entityType: `${_entity}Detail`,
+        type: 'detail',
+        masterId // Pass the master ID to the batch operations
       });
     }
 
+    // Fetch the complete record with details
     const record = await findRecord(_master, {
       where: {
-        id: result.ids,
+        id: masterId,
       },
       include: {
         serviceDetail: {
@@ -61,6 +77,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
+    console.error('Error in service-events update:', error);
     return NextResponse.json(
       { error: error.message || 'Something went wrong' },
       { status: 500 }
