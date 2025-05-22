@@ -1,3 +1,4 @@
+import { GridComponent } from '@syncfusion/ej2-react-grids';
 import { JSX } from "react";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -41,7 +42,7 @@ export interface SyncfusionGridProps {
   onActionBegin?: (args: any) => Promise<void>;
   onPageChange?: (page: number, pageSize: number) => void;
   onSearch?: (searchText: string) => void;
-  gridRef?: any;
+  gridRef?: React.RefObject<GridComponent>;
   pageSettings?: {
     pageSize: number;
     pageSizes?: boolean;

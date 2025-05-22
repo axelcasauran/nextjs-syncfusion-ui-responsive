@@ -20,16 +20,16 @@ const SearchPage = () => {
   const [searchText, setSearchText] = useState('');
   const [sortField, setSortField] = useState('id');
   const [sortDirection, setSortDirection] = useState('desc');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Create a ref to track initial load
   const isInitialLoad = useRef(true);
 
   const loadData = useCallback(async () => {
     try {
-
-      if (!isInitialLoad.current) return; // Skip if not initial load
-      isInitialLoad.current = false; // Mark as loaded
-
+      setIsLoading(true);
+      
+      // Use for both initial load and subsequent reloads
       const sortFieldParam = sortField ? `&sort=${sortField}` : '';
       const sortDirectionParam = sortDirection ? `&dir=${sortDirection}` : '';
       const pageParam = page ? `&page=${page}` : '';
@@ -43,21 +43,20 @@ const SearchPage = () => {
       setFormPage({
         result: data.result || [],
         count: data.count || data.result?.length
-      });      
+      });
+      
+      isInitialLoad.current = false; // Mark as loaded after any successful load
     } catch (error) {
       console.error('Error loading data:', error);
+    } finally {
+      setIsLoading(false);
     }
   }, [sortField, sortDirection, page, pageSize, searchText]);
 
-  // Call loadData immediately
-  loadData();
-
-  // For subsequent loads (search, sort, etc), create a separate function
-  const reloadData = useCallback(async () => {
-    isInitialLoad.current = true; // Reset the flag
-    await loadData();
+  // Load data on component mount
+  useEffect(() => {
+    loadData();
   }, [loadData]);
-
 
   const rowSelected = (args: any) => {
     const selectedRecords = gridRef.current.getSelectedRecords();
@@ -73,7 +72,7 @@ const SearchPage = () => {
     try {
       setPage(page);
       setPageSize(pageSize);
-      await reloadData();
+      await loadData(); // Use the same loadData function
     } catch (error) {
       console.error('Error fetching page:', error);
     }
@@ -82,7 +81,8 @@ const SearchPage = () => {
   const handleSearch = async (searchText: string) => {
     try {
       setSearchText(searchText);
-      await reloadData();
+      setPage(1); // Reset to first page on new search
+      await loadData(); // Use the same loadData function
     } catch (error) {
       console.error('Error searching:', error);
     }
@@ -94,7 +94,7 @@ const SearchPage = () => {
       args.cancel = true;
       setSortField(args.columnName ?? 'id');
       setSortDirection(args.direction == 'Ascending' ? 'asc' : 'desc');
-      await reloadData();
+      await loadData();
     }
   }
 
@@ -146,6 +146,7 @@ const SearchPage = () => {
       width: 40,
       type: 'boolean',
       displayAsCheckBox: true,
+      editType: 'booleanedit',
       textAlign: 'Center',
       hideAtMedia: true
     }

@@ -1,6 +1,8 @@
 // next.config.js
 import { i18n } from './next-i18next.config';
 
-module.exports = {
+const config = {
   i18n,
 };
+
+export default config;

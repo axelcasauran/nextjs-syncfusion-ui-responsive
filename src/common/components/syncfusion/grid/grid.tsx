@@ -16,7 +16,7 @@ import {
 import { SyncfusionGridProps } from './types';
 import { ColumnMenu, FilterType, NewRowPosition, SelectionMode } from '@syncfusion/ej2-grids';
 import { ButtonComponent } from '@syncfusion/ej2-react-buttons';
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 export const SyncfusionGrid = ({
   columns,
@@ -72,7 +72,7 @@ export const SyncfusionGrid = ({
 
   // Update handlePageChange function
   const handlePageChange = (newPage: number) => {
-    if (gridRef.current && newPage >= 1 && newPage <= totalPages) {
+    if (gridRef?.current && newPage >= 1 && newPage <= totalPages) {
       // Update current page first
       setCurrentPage(newPage);
 
@@ -104,22 +104,68 @@ export const SyncfusionGrid = ({
 
   // Search function to handle input changes
   const handleClear = () => {
-    // Trigger search with empty string to reset    
+    // Clear the input field first
     setValue('');
-    triggerSearch('');
+    // Then trigger search with empty string to reset    
+    if (onSearch) {
+      onSearch('');
+    }
+    setCurrentPage(1);
   };
+  
+  // Debounce timer reference
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Debounced search function
+  const debouncedSearch = useCallback((searchText: string) => {
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    // Set a new timer
+    debounceTimerRef.current = setTimeout(() => {
+      if (onSearch) {
+        onSearch(searchText);
+      }
+      setCurrentPage(1);
+    }, 300); // 300ms delay
+  }, [onSearch]);
+  
   const triggerSearch = (searchText: string) => {
     if (onSearch) {
       onSearch(searchText);
     }
     setCurrentPage(1);
   };
-  const handleInput = (args: any) => {
-    if (args?.code === 13 || args?.code === 'Enter') {
-      const searchText = args?.currentTarget?.value || '';
+  
+  const handleInput = (args: React.KeyboardEvent<HTMLInputElement>) => {
+    if (args.key === 'Enter') {
+      const searchText = args.currentTarget.value || '';
       triggerSearch(searchText);
     }
   };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const searchText = e.target.value;
+    setValue(searchText);
+    debouncedSearch(searchText);
+  };
+
+  // Cleanup effect to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      // Cleanup debounce timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      // Cleanup any resources when component unmounts
+      if (gridRef && gridRef.current) {
+        // Perform any necessary cleanup for grid
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
@@ -190,7 +236,7 @@ export const SyncfusionGrid = ({
                 <input
                   type="text"
                   value={value}
-                  onChange={(e) => setValue(e.target.value)}
+                  onChange={handleInputChange}
                   className="e-control e-textbox e-lib e-input"
                   onKeyDown={handleInput}
                   placeholder="Search..."
@@ -250,7 +296,7 @@ export const SyncfusionGrid = ({
           template: ' ', // Custom template for the pager
         }}
         dataBound={() => {
-          if (gridRef.current) {
+          if (gridRef?.current) {
             const totalCount = dataSource?.count || 0;
             if (filteredCount !== totalCount) {
               setFilteredCount(totalCount);
@@ -259,9 +305,8 @@ export const SyncfusionGrid = ({
           }
         }}
         actionComplete={(args) => {
-          console.log('actionComplete >>> ', args);
           if (args.requestType === 'searching' || args.requestType === 'filtering') {
-            if (gridRef.current) {
+            if (gridRef?.current) {
               const filteredData = gridRef.current.currentViewData;
               setFilteredCount(filteredData.length);
               setCurrentPage(1);

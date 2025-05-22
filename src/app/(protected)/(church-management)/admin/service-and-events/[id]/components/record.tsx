@@ -600,8 +600,8 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         { field: 'description', headerText: 'Description', width: 50, hideAtMedia: true },
         { field: 'notes', headerText: 'Notes', width: 50, hideAtMedia: true },
         { field: 'minutes', headerText: 'Minutes', width: 25, type: 'number', hideAtMedia: true },
-        { field: 'isAccepted', headerText: 'Accepted', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
-        { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, textAlign: 'Center', hideAtMedia: true },
+        { field: 'isAccepted', headerText: 'Accepted', width: 25, type: 'boolean', displayAsCheckBox: true, editType: 'booleanedit', textAlign: 'Center', hideAtMedia: true },
+        { field: 'isRequired', headerText: 'Required', width: 25, type: 'boolean', displayAsCheckBox: true, editType: 'booleanedit', textAlign: 'Center', hideAtMedia: true },
     ];
 
     // ++++++++++++ END CONTENT ++++++++++++
