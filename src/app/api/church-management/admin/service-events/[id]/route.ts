@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import { validateSession } from '@framework/api/validateSession';
 import { findRecord } from '@framework/api/prisma-operations';
@@ -27,8 +28,19 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       }
     });
 
+    const transformedRecord = {
+      ...record,
+      serviceDetail: record.serviceDetail.map((detail: any) => ({
+        ...detail,
+        fullName: `${detail.user.firstName} ${detail.user.lastName}`.trim(),
+        user: {
+          id: detail.user.id
+        }
+      }))
+    };
+
     return NextResponse.json({
-      result: record
+      result: transformedRecord
     });
 
   } catch (error) {

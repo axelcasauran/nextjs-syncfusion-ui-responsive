@@ -7,7 +7,7 @@ export type Service = Prisma.ServiceGetPayload<{
   };
 }>;
 
-export type ServiceDetail = Prisma.ServiceDetailGetPayload<{
+export type ServiceDetail = Prisma.ServiceDetailGetPayload<{  
   include: {
     user: true;
     service: true;
@@ -15,6 +15,7 @@ export type ServiceDetail = Prisma.ServiceDetailGetPayload<{
 }>;
 
 export type ServiceDetailGridRow = Omit<ServiceDetail, 'user'> & {
+  fullName: string;
   user: {
     firstName: string;
     lastName: string;
@@ -41,4 +42,16 @@ export type ServiceGridResponse = {
 export type ServiceApiResponse = {
   result: Service;
   message?: string;
-}; 
+};
+
+// Extend the Prisma type if needed
+export interface ServiceGridRecord extends Service {
+    // Add any UI-specific fields here
+    _isNew?: boolean;
+    _isModified?: boolean;
+}
+
+export interface GridDataState<T> {
+    result: T[];
+    count: number;
+}

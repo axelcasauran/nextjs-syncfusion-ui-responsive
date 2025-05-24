@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { Container } from '@components/common/container';
-import SearchPage from './components/search';
+import SearchPage from './search';
 
 export const metadata: Metadata = {
   title: 'Service and Events',

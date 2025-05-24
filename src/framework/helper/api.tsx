@@ -4,5 +4,8 @@ export const API = {
         list: '/api/church-management/admin/service-events/list',
         get: '/api/church-management/admin/service-events',
         post: '/api/church-management/admin/service-events'
+    },
+    user: {
+        collection: '/api/church-management/admin/volunteers'
     }
 }

@@ -41,6 +41,7 @@
       "@user-management-api/*": ["./src/app/api/user-management/*"],      
       "@reui/*": ["./src/common/reui/components/*"],
       "@syncfusion/*": ["./src/common/components/syncfusion/*"],
+      "@templates/*": ["./src/common/components/templates/*"],
       "@common/*": ["./src/common/*"]
     }
   },
