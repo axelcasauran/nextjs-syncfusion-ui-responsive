@@ -33,7 +33,7 @@ const SearchPage = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [searchText, setSearchText] = useState('');
-  const [sortField, setSortField] = useState('id');
+  const [sortField, setSortField] = useState('createdAt');
   const [sortDirection, setSortDirection] = useState('desc');
   const [isLoading, setIsLoading] = useState(false);
 

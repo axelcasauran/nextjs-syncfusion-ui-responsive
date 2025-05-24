@@ -67,6 +67,9 @@ export async function POST(request: NextRequest) {
                 lastName: true,
               }
             }
+          },
+          orderBy: {
+            createdAt: 'asc'
           }
         }
       }

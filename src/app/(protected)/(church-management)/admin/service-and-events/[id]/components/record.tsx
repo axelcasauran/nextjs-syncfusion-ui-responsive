@@ -188,6 +188,26 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
                                 gridRef.current.updateCell(rowIndex, 'user.lastName', e.item.lastName);
                                 gridRef.current.updateCell(rowIndex, 'user.id', e.item.id);
                                 gridRef.current.updateCell(rowIndex, 'userId', updatedData.userId);
+                                // Manual update
+                                const dataSource = gridRef.current.dataSource;
+                                if (dataSource && 'result' in dataSource && Array.isArray(dataSource.result)) {
+                                    const row = dataSource.result[rowIndex] as { user?: { firstName: string, lastName: string, id: string } };
+                                    if (row && row.user) {
+                                        row.user.firstName = e.item.firstName;
+                                        row.user.lastName = e.item.lastName;
+                                        row.user.id = e.item.id;
+                                    }
+                                    else {
+                                        dataSource.result[rowIndex] = {
+                                            ...dataSource.result[rowIndex],
+                                            user: {
+                                                firstName: e.item.firstName,
+                                                lastName: e.item.lastName,
+                                                id: e.item.id
+                                            }
+                                        };
+                                    }
+                                }
                                 gridRef.current.saveCell();
                             }, 0);
                         } catch (error) {
@@ -255,11 +275,12 @@ const RecordPage = ({ id, isLoading }: { id: string; isLoading: boolean; }) => {
         // Update grid data without full reset if data exists
         if (data.serviceDetail && data.serviceDetail.length > 0) {
             const currentData = formDetailPage.result;
-            const updatedData = data.serviceDetail.map((detail: any) => ({
-                ...detail,
-                // Preserve any local changes to the user data
-                user: currentData.find((d: any) => d.id === detail.id)?.user || detail.user
-            }));
+            const updatedData = data.serviceDetail;
+            // const updatedData = data.serviceDetail.map((detail: any) => ({
+            //     ...detail,
+            //     // Preserve any local changes to the user data
+            //     user: currentData.find((d: any) => d.id === detail.id)?.user || detail.user
+            // }));
 
             setFormDetailPage({
                 result: updatedData,

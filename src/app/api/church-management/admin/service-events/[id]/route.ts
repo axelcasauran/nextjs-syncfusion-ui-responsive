@@ -28,6 +28,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
                 lastName: true,
               }
             }
+          },
+          orderBy: {
+            createdAt: 'asc'
           }
         }
       }
